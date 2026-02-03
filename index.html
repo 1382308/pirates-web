@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jugador – Piratas</title>
+  <style>
+    :root{
+      --bg:#060a14; --card:#101a2e; --line:#223153; --muted:#92a7cf;
+      --gold:#FFD700; --silver:#C0C0C0; --bronze:#CD7F32;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#050816,#060a14);color:#e8eefc}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(6,10,20,.92);backdrop-filter:blur(8px);z-index:10}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    .wrap{max-width:1220px;margin:0 auto;padding:16px}
+    .card{background:rgba(16,26,46,.88);border:1px solid var(--line);border-radius:16px;padding:14px}
+    h1{font-size:18px;margin:0 0 10px}
+    h2{font-size:14px;margin:0 0 10px;color:#d9e6ff}
+    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
+    input,button{font:inherit}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#091024;color:#e8eefc}
+    button{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:#e8eefc;cursor:pointer}
+    button.primary{background:#1b2a52;border-color:#2a3b67}
+    button.ok{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .row{display:flex;gap:10px}
+    .row>*{flex:1}
+    .hint{color:var(--muted);font-size:12px;line-height:1.35}
+    .hidden{display:none !important}
+
+    .gridLobby{display:grid;grid-template-columns:1fr 360px;gap:14px}
+    .teams{display:flex;flex-direction:column;gap:10px}
+    .team{border:1px solid #ffffff22;border-radius:12px;padding:10px;background:rgba(9,16,36,.6)}
+    .team .name{font-weight:800}
+    .team .meta{color:var(--muted);font-size:12px;margin-top:4px}
+    .team .members{color:#cfe1ff;font-size:12px;margin-top:8px}
+    .gold{border-color:var(--gold)}
+    .silver{border-color:var(--silver)}
+    .bronze{border-color:var(--bronze)}
+    .normal{border-color:#ffffff33}
+
+    .hearts{display:flex;gap:6px;align-items:center}
+    .heart{font-size:18px}
+    .heart.off{opacity:.25}
+
+    .gameWrap{display:grid;grid-template-columns:1fr 340px;gap:14px}
+    .mainGame{border:1px solid var(--line);border-radius:16px;background:rgba(16,26,46,.65);overflow:hidden}
+    .imgBox{height:min(64vh,560px);background:#050815;display:flex;align-items:center;justify-content:center;position:relative}
+    .imgBox img{width:100%;height:100%;object-fit:cover;display:block}
+    .hudLeft{position:absolute;top:10px;left:10px;display:flex;gap:10px;align-items:center}
+    .hudRight{position:absolute;top:10px;right:10px;display:flex;gap:10px;align-items:center}
+    .questionBox{padding:12px 14px;border-top:1px solid var(--line)}
+    .answers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;border-top:1px solid var(--line)}
+    .answers button{padding:12px 10px;min-height:46px}
+    .feedback{padding:10px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;min-height:34px}
+
+    .side{border:1px solid var(--line);border-radius:16px;background:rgba(16,26,46,.65);padding:12px;display:flex;flex-direction:column;gap:12px}
+    .perkBar{display:flex;flex-wrap:wrap;gap:8px}
+    .perkBtn{padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#0a1020;color:#e8eefc;font-size:12px}
+    .perkBtn small{opacity:.7}
+    .perkBtn:disabled{opacity:.4}
+    .sep{height:1px;background:var(--line);margin:6px 0}
+
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,.72);z-index:9999;text-align:center;padding:20px}
+    .overlay.show{display:flex}
+    .overlay .big{font-size:38px;font-weight:900}
+    .overlay .sub{color:#cfe1ff}
+    .count{font-size:54px;font-weight:900}
+
+    .flagWrap{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:720px}
+    .flagWrap img{max-width:min(72vw,640px);max-height:52vh;border-radius:14px;border:1px solid #ffffff33;background:#050815}
+    .shieldBtn{padding:12px 14px;border-radius:12px;border:1px solid #ffffff44;background:rgba(16,26,46,.75);font-weight:800}
+
+    .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9998;padding:18px}
+    .modalBack.show{display:flex}
+    .modal{width:min(760px,96vw);background:rgba(16,26,46,.96);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .modalList{margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .targetCard{border:1px solid #ffffff22;border-radius:12px;padding:10px;background:rgba(9,16,36,.6);cursor:pointer}
+    .targetCard:hover{border-color:#8ab4ff55}
+    .targetCard .tname{font-weight:900}
+    .targetCard .tmembers{color:#cfe1ff;font-size:12px;margin-top:6px}
+    .mini{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="pill">🏴‍☠️ Jugador</div>
+    <div class="pill">Sala: <span id="roomPill" class="mono">—</span></div>
+    <div class="pill">Equipo: <span id="teamPill" class="mono">—</span></div>
+    <div class="pill">Estado: <span id="statePill">registro</span></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="hearts" title="Vidas">
+      <span class="pill">❤️ Vidas</span>
+      <span id="hearts"></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div id="screenRegister" class="card">
+    <h1>Registro de equipo</h1>
+    <div class="hint">Escribe el <b>Room ID</b> y los nombres (1 a 4). Al presionar <b>Listo</b> se asigna una <b>tripulación épica</b> irrepetible.</div>
+
+    <label>Room ID</label>
+    <input id="roomId" placeholder="Ej: PIRATAS-SEC3A" />
+
+    <div class="row">
+      <div><label>Integrante 1</label><input class="m" placeholder="Nombre" /></div>
+      <div><label>Integrante 2</label><input class="m" placeholder="Nombre (opcional)" /></div>
+    </div>
+    <div class="row">
+      <div><label>Integrante 3</label><input class="m" placeholder="Nombre (opcional)" /></div>
+      <div><label>Integrante 4</label><input class="m" placeholder="Nombre (opcional)" /></div>
+    </div>
+
+    <div class="row">
+      <button id="btnCheck" class="primary">🔎 Verificar sala</button>
+      <button id="btnJoin" class="ok">✅ Listo</button>
+    </div>
+
+    <div class="hint" style="margin-top:10px" id="regMsg">—</div>
+  </div>
+
+  <div id="screenLobby" class="gridLobby hidden">
+    <div class="card">
+      <h2>Lobby</h2>
+      <div class="hint" id="lobbyMsg">—</div>
+      <div style="margin-top:12px" class="hint">Integrantes: <span id="membersPill" class="mono">—</span></div>
+      <div style="margin-top:12px" class="hint">Tripulación asignada: <span id="teamNamePill" class="mono">—</span></div>
+      <div class="sep"></div>
+      <div class="hint">Cuando el host inicie, verás una cuenta regresiva de 5 segundos.</div>
+    </div>
+
+    <div class="card">
+      <h2>Scoreboard</h2>
+      <div class="teams" id="teamsLobby"></div>
+    </div>
+  </div>
+
+  <div id="screenGame" class="gameWrap hidden">
+    <div class="mainGame">
+      <div class="imgBox">
+        <div class="hudLeft">
+          <div class="pill">⏱️ <span id="timerTxt">—</span></div>
+          <div class="pill">⭐ Pts: <span id="pointsTxt">—</span></div>
+        </div>
+        <div class="hudRight">
+          <div class="pill">📍 Pregunta <span id="qNum">—</span>/20</div>
+        </div>
+        <img id="mainImg" alt="escena" src="q01.jpg" />
+      </div>
+
+      <div class="questionBox"><div id="qText"></div></div>
+      <div class="answers" id="answersRow"></div>
+      <div class="feedback" id="feedback">—</div>
+    </div>
+
+    <div class="side">
+      <div>
+        <h2>Perks (máx 5) – usa 1 por pregunta</h2>
+        <div class="perkBar" id="perkBar"></div>
+        <div class="mini" id="perkHint">Ganas una carta aleatoria al acertar.</div>
+      </div>
+      <div class="sep"></div>
+      <div>
+        <h2>Equipos</h2>
+        <div class="teams" id="teamsSide"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="overlayCountdown" class="overlay">
+  <div class="big">¡Zarpamos!</div>
+  <div class="sub">Iniciamos en…</div>
+  <div class="count" id="countNum">5</div>
+</div>
+
+<div id="overlayTimeout" class="overlay">
+  <div class="flagWrap">
+    <img id="opFlag" src="op_flag.png" alt="bandera pirata" />
+    <div class="big">⛔ Interferencia pirata</div>
+    <div class="sub" id="attackByTxt">—</div>
+    <button id="btnShield" class="shieldBtn hidden">🛡️ Activar Escudo</button>
+    <div class="mini">El tiempo sigue corriendo…</div>
+  </div>
+</div>
+
+<div id="overlayGameOver" class="overlay">
+  <div class="big">💀 GAME OVER</div>
+  <div class="sub">Se agotaron tus 5 vidas.</div>
+</div>
+
+<div id="targetModalBack" class="modalBack">
+  <div class="modal">
+    <div class="modalTop">
+      <div>
+        <div style="font-weight:900;font-size:16px" id="modalTitle">Elegir objetivo</div>
+        <div class="mini" id="modalSub">—</div>
+      </div>
+      <button id="btnCloseModal">Cerrar</button>
+    </div>
+    <div class="modalList" id="targetList"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getDatabase, ref, set, update, get, onValue, runTransaction, remove
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA6xPT1PT7Ce74zK8psf3uFSD5s7K-uMXI",
+    authDomain: "pirates-59cc3.firebaseapp.com",
+    databaseURL: "https://pirates-59cc3-default-rtdb.firebaseio.com",
+    projectId: "pirates-59cc3",
+    storageBucket: "pirates-59cc3.firebasestorage.app",
+    messagingSenderId: "717943731099",
+    appId: "1:717943731099:web:dda5b40c954b1aa7d8273e"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ===== Tripulaciones (20) =====
+  const TEAM_NAMES = [
+    "Tripulación del Abismo Carmesí","Tripulación del Leviatán de Ébano","Tripulación de la Calavera Astral","Tripulación del Huracán Silente",
+    "Tripulación del Kraken Inmortal","Tripulación del Faro del Juicio","Tripulación de la Daga de Oro Negro","Tripulación de las Mareas Malditas",
+    "Tripulación del Ojo del Naufragio","Tripulación del Viento del Norte Sombrío","Tripulación de la Brújula Rota","Tripulación del Ancla de Titanio",
+    "Tripulación del Tridente Fantasma","Tripulación del Remolino del Fin","Tripulación de la Sombra del Horizonte","Tripulación de la Tormenta Esmeralda",
+    "Tripulación del Sable del Eclipse","Tripulación del Dragón Marino","Tripulación de la Bandera del Vacío","Tripulación del Tesoro Prohibido"
+  ];
+
+  // ===== Preguntas =====
+  const QUESTIONS = [
+    { img:"q01.jpg", text:"🌊 Mapa maldito: ¿Qué es un triángulo rectángulo?", opts:["Tiene un ángulo recto","Tiene todos los lados iguales","Tiene dos ángulos obtusos","No tiene ángulos"], correct:0 },
+    { img:"q02.jpg", text:"🧭 Mapa maldito: ¿Cómo se llama el lado más largo?", opts:["Cateto","Hipotenusa","Base","Altura"], correct:1 },
+    { img:"q03.jpg", text:"🧭 Puente de cuerdas: ¿Qué son los catetos?", opts:["Lados que forman el ángulo recto","Lado más largo","Lados curvos","Lados opuestos al ángulo recto"], correct:0 },
+    { img:"q04.jpg", text:"⛰️ Montaña: ¿En qué triángulo se usa Pitágoras?", opts:["En cualquier triángulo","Solo en rectángulos","Solo en equiláteros","Solo en isósceles"], correct:1 },
+    { img:"q05.jpg", text:"⛰️ Montaña: ¿Cuál es la fórmula de Pitágoras?", opts:["a+b=c","a²+b²=c²","a×b=c","a²-b²=c²"], correct:1 },
+    { img:"q06.jpg", text:"⛰️ Montaña: En Pitágoras, c representa…", opts:["Un cateto","La hipotenusa","Un ángulo","El área"], correct:1 },
+    { img:"q07.jpg", text:"🗼 Torre del vigía: ¿Qué son las razones trigonométricas?", opts:["Comparaciones entre lados de un triángulo rectángulo","Operaciones con potencias","Tipos de polígonos","Medidas de área"], correct:0 },
+    { img:"q08.jpg", text:"🗼 Torre del vigía: Razones básicas:", opts:["Seno, coseno, tangente","Área, perímetro, volumen","Suma, resta, producto","Mediana, moda, media"], correct:0 },
+    { img:"q09.jpg", text:"🗼 SOH: Seno es…", opts:["Opuesto/Hipotenusa","Adyacente/Hipotenusa","Opuesto/Adyacente","Hipotenusa/Opuesto"], correct:0 },
+    { img:"q10.jpg", text:"🗼 CAH: Coseno es…", opts:["Opuesto/Hipotenusa","Adyacente/Hipotenusa","Opuesto/Adyacente","Hipotenusa/Adyacente"], correct:1 },
+    { img:"q11.jpg", text:"🗼 TOA: Tangente es…", opts:["Opuesto/Adyacente","Adyacente/Opuesto","Opuesto/Hipotenusa","Hipotenusa/Opuesto"], correct:0 },
+    { img:"q12.jpg", text:"🏛️ Templo: El seno compara…", opts:["Cateto opuesto e hipotenusa","Cateto adyacente e hipotenusa","Ambos catetos","Dos hipotenusas"], correct:0 },
+    { img:"q13.jpg", text:"🏛️ Templo: El coseno compara…", opts:["Opuesto e hipotenusa","Adyacente e hipotenusa","Ambos catetos","Ángulo y área"], correct:1 },
+    { img:"q14.jpg", text:"🏛️ Templo: La tangente compara…", opts:["Opuesto y adyacente","Adyacente e hipotenusa","Opuesto e hipotenusa","Dos catetos iguales"], correct:0 },
+    { img:"q15.jpg", text:"🏛️ Templo: Para usar seno/cos/tan, el ángulo debe ser…", opts:["Recto","Agudo","Obtuso","Cualquiera, siempre"], correct:1 },
+    { img:"q16.jpg", text:"💎 Cofre: ¿Qué NO es una razón trigonométrica?", opts:["Seno","Coseno","Tangente","Hipotenusa"], correct:3 },
+    { img:"q17.jpg", text:"💎 Cofre: Si conoces dos lados de un triángulo rectángulo, usas…", opts:["Tales","Pitágoras","Promedio","Regla de tres"], correct:1 },
+    { img:"q18.jpg", text:"💎 Cofre: Razones trigonométricas sirven para…", opts:["Relacionar ángulos y lados","Calcular perímetros de círculos","Sumar fracciones","Clasificar números"], correct:0 },
+    { img:"q19.jpg", text:"🧠 Decisión: Pitágoras se usa para…", opts:["Hallar un lado faltante en triángulo rectángulo","Medir el volumen","Calcular probabilidades","Encontrar la mediana"], correct:0 },
+    { img:"q20.jpg", text:"🧠 Decisión final: Trigonometría se usa para…", opts:["Relacionar un ángulo con los lados","Sumar cuadrados de lados siempre","Calcular áreas de cualquier figura","Hallar el perímetro de un rectángulo"], correct:0 },
+  ];
+
+  // ===== Perks =====
+  const PERK_META = {
+    timeout:{label:"⛔ Timeout",emoji:"⛔",kind:"attack"},
+    skip:{label:"⏭️ Skip",emoji:"⏭️",kind:"self"},
+    anchor:{label:"⚓ Ancla",emoji:"⚓",kind:"self"},
+    double:{label:"🧪 Doble intento",emoji:"🧪",kind:"self"},
+    shield:{label:"🛡️ Escudo",emoji:"🛡️",kind:"self"}
+  };
+  const PERK_WEIGHTS = [["timeout",15],["skip",20],["anchor",20],["double",20],["shield",25]];
+
+  // ===== Config =====
+  const MAX_LIVES=5, TIME_LIMIT_MS=20000, MAX_POINTS=10, MIN_POINTS=0;
+  const TIMEOUT_MS=10000;
+
+  // ===== UI refs =====
+  const roomIdEl=document.getElementById("roomId");
+  const btnCheck=document.getElementById("btnCheck");
+  const btnJoin=document.getElementById("btnJoin");
+  const regMsg=document.getElementById("regMsg");
+  const membersInputs=Array.from(document.querySelectorAll("input.m"));
+
+  const roomPill=document.getElementById("roomPill");
+  const teamPill=document.getElementById("teamPill");
+  const statePill=document.getElementById("statePill");
+
+  const screenRegister=document.getElementById("screenRegister");
+  const screenLobby=document.getElementById("screenLobby");
+  const screenGame=document.getElementById("screenGame");
+
+  const lobbyMsg=document.getElementById("lobbyMsg");
+  const membersPill=document.getElementById("membersPill");
+  const teamNamePill=document.getElementById("teamNamePill");
+  const teamsLobbyEl=document.getElementById("teamsLobby");
+  const teamsSideEl=document.getElementById("teamsSide");
+
+  const overlayCountdown=document.getElementById("overlayCountdown");
+  const countNum=document.getElementById("countNum");
+
+  const overlayTimeout=document.getElementById("overlayTimeout");
+  const attackByTxt=document.getElementById("attackByTxt");
+  const btnShield=document.getElementById("btnShield");
+
+  const overlayGameOver=document.getElementById("overlayGameOver");
+  const heartsEl=document.getElementById("hearts");
+
+  const timerTxt=document.getElementById("timerTxt");
+  const pointsTxt=document.getElementById("pointsTxt");
+  const qNum=document.getElementById("qNum");
+  const mainImg=document.getElementById("mainImg");
+  const qText=document.getElementById("qText");
+  const answersRow=document.getElementById("answersRow");
+  const feedback=document.getElementById("feedback");
+
+  const perkBar=document.getElementById("perkBar");
+  const perkHint=document.getElementById("perkHint");
+
+  const targetModalBack=document.getElementById("targetModalBack");
+  const targetList=document.getElementById("targetList");
+  const modalTitle=document.getElementById("modalTitle");
+  const modalSub=document.getElementById("modalSub");
+  const btnCloseModal=document.getElementById("btnCloseModal");
+
+  // ===== Persisted =====
+  let roomId=localStorage.getItem("pirates_roomId")||"";
+  let teamId=localStorage.getItem("pirates_teamId")||"";
+  let teamName=localStorage.getItem("pirates_teamName")||"";
+  let members=JSON.parse(localStorage.getItem("pirates_members")||"[]");
+  roomIdEl.value=roomId;
+  membersPill.textContent=members.length?members.join(" / "):"—";
+  teamNamePill.textContent=teamName||"—";
+  setPills();
+
+  // ===== Runtime =====
+  let myTeam=null, teamsObjCache={}, roomCache={};
+  let qIndex=0, qStartedAt=0, qAnswered=false, usedPerkThisQuestion=false;
+  let currentEffectId=null, shieldWindowUntil=0;
+  let anchorUntil=0, anchorElapsedSnap=0, doubleTryArmed=false;
+  let pendingAttackPerk=null;
+
+  // ===== Randomization state =====
+  // qOrder: arreglo de índices (0..19) con orden aleatorio estable por equipo.
+  let qOrder = null;
+  // currentCorrectPos: posición (0..3) que es correcta DESPUÉS de mezclar respuestas
+  let currentCorrectPos = 0;
+
+  // ===== RNG helpers (seeded) =====
+  function hash32(str){
+    let h=2166136261>>>0;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h>>>0;
+  }
+  function mulberry32(a){
+    return function(){
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function seededShuffle(arr, seed){
+    const a = arr.slice();
+    const rnd = mulberry32(seed>>>0);
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(rnd()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function qOrderKey(){ return `pirates_qOrder_${roomId}_${teamId}`; }
+
+  function ensureQuestionOrder(){
+    if(!roomId || !teamId) return;
+    const key = qOrderKey();
+    const saved = localStorage.getItem(key);
+    if(saved){
+      try{
+        const parsed = JSON.parse(saved);
+        if(Array.isArray(parsed) && parsed.length===QUESTIONS.length){
+          qOrder = parsed;
+          return;
+        }
+      }catch{}
+    }
+    // generar nuevo orden estable
+    const base = Array.from({length:QUESTIONS.length},(_,i)=>i);
+    const seed = hash32(`${roomId}|${teamId}|QUESTIONS`);
+    qOrder = seededShuffle(base, seed);
+    localStorage.setItem(key, JSON.stringify(qOrder));
+  }
+
+  // ===== UI helpers =====
+  function show(el){ screenRegister.classList.add("hidden");screenLobby.classList.add("hidden");screenGame.classList.add("hidden"); el.classList.remove("hidden"); }
+  function setPills(){ roomPill.textContent=roomId||"—"; teamPill.textContent=teamName||"—"; }
+  function clampLives(v){ const n=Number(v); if(isNaN(n)) return MAX_LIVES; return Math.max(0, Math.min(MAX_LIVES, n)); }
+  function setHearts(lives){
+    const L=clampLives(lives);
+    heartsEl.innerHTML="";
+    for(let i=0;i<MAX_LIVES;i++){
+      const s=document.createElement("span");
+      s.className="heart"+(i<L?"":" off");
+      s.textContent="❤️";
+      heartsEl.appendChild(s);
+    }
+  }
+  function normalizeMembers(){ return membersInputs.map(i=>i.value.trim()).filter(Boolean).slice(0,4); }
+  function teamPath(path){ return ref(db, `rooms/${roomId}/teams/${teamId}/${path}`); }
+  function effectsPath(path){ return ref(db, `rooms/${roomId}/effects/${teamId}/${path}`); }
+  function setAnswerButtonsEnabled(enabled){ Array.from(answersRow.children).forEach(btn=>btn.disabled=!enabled); }
+  function setFeedback(msg, good=null){
+    feedback.textContent=msg;
+    feedback.style.color = good===true ? "#bfffd3" : good===false ? "#ffd0d0" : "var(--muted)";
+  }
+  function formatMs(ms){ return `${Math.max(0, Math.ceil(ms/1000))}s`; }
+
+  function computePointsNow(){
+    const now=Date.now();
+    const elapsed=Math.max(0, now-qStartedAt);
+    const effElapsed=(anchorUntil>now)?anchorElapsedSnap:elapsed;
+    const t=Math.min(1, effElapsed/TIME_LIMIT_MS);
+    const pts=Math.ceil(MAX_POINTS - t*(MAX_POINTS-MIN_POINTS));
+    return Math.max(MIN_POINTS, Math.min(MAX_POINTS, pts));
+  }
+
+  function totalPerks(perksObj){ const p=perksObj||{}; return Object.values(p).reduce((a,b)=>a+(Number(b)||0),0); }
+  function weightedPick(){
+    const total=PERK_WEIGHTS.reduce((s,[,w])=>s+w,0);
+    let r=Math.random()*total;
+    for(const [k,w] of PERK_WEIGHTS){ r-=w; if(r<=0) return k; }
+    return PERK_WEIGHTS[0][0];
+  }
+  async function awardRandomPerk(){
+    const perks=(myTeam?.perks)||{};
+    if(totalPerks(perks)>=5){ perkHint.textContent="Inventario lleno (5). No recibiste carta."; return; }
+    const k=weightedPick();
+    await runTransaction(teamPath("perks"),(cur)=>{ const p=cur||{}; p[k]=(Number(p[k])||0)+1; return p; });
+    perkHint.textContent=`Carta obtenida: ${PERK_META[k].label}`;
+  }
+  async function consumePerk(key,n=1){
+    await runTransaction(teamPath("perks"),(cur)=>{
+      const p=cur||{}; const v=Number(p[key]||0);
+      if(v<=0) return;
+      p[key]=v-n; if(p[key]<=0) delete p[key];
+      return p;
+    });
+  }
+
+  // ===== Room join =====
+  async function checkRoom(){
+    roomId=roomIdEl.value.trim();
+    if(!roomId) throw new Error("Escribe un Room ID.");
+    setPills();
+    const snap=await get(ref(db, `rooms/${roomId}`));
+    if(!snap.exists()) return {ok:false,msg:"⏳ Esperando al host: la sala aún no existe."};
+    const room=snap.val()||{};
+    if(room.allowJoin!==true) return {ok:false,msg:"⏳ Esperando al host: conexiones cerradas."};
+    if(room.gameState && room.gameState!=="lobby") return {ok:false,msg:`⛔ La partida ya está en estado: ${room.gameState}.`};
+    return {ok:true,msg:"✅ Sala lista. Presiona “Listo” para unirte."};
+  }
+
+  async function ensurePoolKeys(){
+    const poolBase=ref(db, `rooms/${roomId}/teamNamePool`);
+    const poolSnap=await get(poolBase);
+    const pool=poolSnap.val()||{};
+    const missing={};
+    TEAM_NAMES.forEach(n=>{
+      const key=n.replaceAll(" ","_").toLowerCase();
+      if(pool[key]===undefined || pool[key]===null) missing[key]=true;
+    });
+    if(Object.keys(missing).length) await update(poolBase, missing);
+  }
+
+  async function reserveTeamName(){
+    await ensurePoolKeys();
+    const poolBase=ref(db, `rooms/${roomId}/teamNamePool`);
+    const freshSnap=await get(poolBase);
+    const fresh=freshSnap.val()||{};
+    let candidates=TEAM_NAMES.map(n=>n.replaceAll(" ","_").toLowerCase())
+      .filter(k=>fresh[k]===true || fresh[k]===undefined || fresh[k]===null);
+    if(candidates.length===0) throw new Error("No hay nombres disponibles (se agotaron los 20).");
+
+    for(let tries=0; tries<20; tries++){
+      const pickKey=candidates[Math.floor(Math.random()*candidates.length)];
+      const pickName=TEAM_NAMES.find(n=>n.replaceAll(" ","_").toLowerCase()===pickKey)||pickKey;
+      const pickRef=ref(db, `rooms/${roomId}/teamNamePool/${pickKey}`);
+      const tx=await runTransaction(pickRef,(cur)=>{
+        if(cur===true || cur===null) return false;
+        return;
+      });
+      if(tx.committed) return pickName;
+      candidates=candidates.filter(k=>k!==pickKey);
+      if(candidates.length===0) break;
+    }
+    throw new Error("No se pudo reservar nombre. Intenta de nuevo.");
+  }
+
+  // ===== Game render (RANDOM) =====
+  function getQuestionByIndex(idx){
+    ensureQuestionOrder();
+    const realIndex = qOrder ? qOrder[idx] : idx;
+    return { q: QUESTIONS[realIndex], realIndex };
+  }
+
+  function renderQuestion(){
+    ensureQuestionOrder();
+
+    const { q, realIndex } = getQuestionByIndex(qIndex);
+
+    qAnswered=false; usedPerkThisQuestion=false; doubleTryArmed=false;
+    qStartedAt=Date.now();
+
+    qNum.textContent=String(qIndex+1);
+    mainImg.src=q.img;
+    qText.innerHTML=`<b>${q.text}</b>`;
+
+    // === Respuestas aleatorias pero estables por equipo/pregunta ===
+    // Creamos un orden aleatorio de opciones [0,1,2,3] usando seed que depende de:
+    // roomId + teamId + qIndex + realIndex
+    const optIdx = [0,1,2,3];
+    const seed = hash32(`${roomId}|${teamId}|ANS|${qIndex}|${realIndex}`);
+    const shuffledOptIdx = seededShuffle(optIdx, seed);
+
+    // nueva posición correcta
+    currentCorrectPos = shuffledOptIdx.indexOf(q.correct);
+
+    answersRow.innerHTML="";
+    shuffledOptIdx.forEach((origOptIndex, pos)=>{
+      const b=document.createElement("button");
+      b.textContent=q.opts[origOptIndex];
+      b.onclick=()=>onAnswer(pos); // ahora se compara con currentCorrectPos
+      answersRow.appendChild(b);
+    });
+
+    setFeedback("Responde rápido para ganar más puntos.");
+    renderPerkBar();
+  }
+
+  function showGameOver(){
+    overlayGameOver.classList.add("show");
+    setAnswerButtonsEnabled(false);
+    usedPerkThisQuestion=true;
+    renderPerkBar();
+  }
+
+  async function onAnswer(clickedPos){
+    if(qAnswered) return;
+
+    if(clampLives(myTeam?.lives ?? MAX_LIVES) <= 0){
+      showGameOver();
+      return;
+    }
+
+    qAnswered=true;
+    setAnswerButtonsEnabled(false);
+
+    const correct = (clickedPos === currentCorrectPos);
+    const pts=computePointsNow();
+
+    if(correct){
+      await runTransaction(teamPath("score"), (cur)=>(Number(cur)||0)+pts);
+      setFeedback(`✅ Correcto: +${pts} pts`, true);
+
+      await awardRandomPerk();
+
+      const next=qIndex+1;
+      await set(teamPath("question"), next);
+
+      setTimeout(()=>{
+        if(next>=QUESTIONS.length){
+          setFeedback("🎉 ¡Fin! Espera instrucciones del host.", true);
+          return;
+        }
+        qIndex=next;
+        renderQuestion();
+      }, 350);
+
+      return;
+    }
+
+    if(doubleTryArmed){
+      doubleTryArmed=false;
+      setFeedback("⚠️ Incorrecto, pero 🧪 Doble intento te salvó (sin perder vida).", false);
+      qAnswered=false;
+      setAnswerButtonsEnabled(true);
+      return;
+    }
+
+    const tx = await runTransaction(teamPath("lives"), (cur)=>{
+      const v=Number(cur);
+      const base=isNaN(v)?MAX_LIVES:v;
+      return Math.max(0, Math.min(MAX_LIVES, base-1));
+    });
+
+    const newLives=clampLives(tx?.snapshot?.val());
+    setHearts(newLives);
+
+    if(newLives<=0){
+      setFeedback("💀 Te quedaste sin vidas.", false);
+      showGameOver();
+      return;
+    }
+
+    setFeedback("❌ Incorrecto: -1 vida", false);
+    qAnswered=false;
+    setAnswerButtonsEnabled(true);
+    renderPerkBar();
+  }
+
+  // ===== Perks =====
+  function renderPerkBar(){
+    const perks=myTeam?.perks||{};
+    perkBar.innerHTML="";
+
+    function addBtn(key,count){
+      const meta=PERK_META[key];
+      const btn=document.createElement("button");
+      btn.className="perkBtn";
+      btn.innerHTML=`${meta.emoji} ${meta.label} <small>×${count}</small>`;
+      btn.disabled=(count<=0) || usedPerkThisQuestion || overlayTimeout.classList.contains("show") || overlayGameOver.classList.contains("show");
+
+      btn.onclick=async ()=>{
+        if(btn.disabled) return;
+
+        // ⏭️ Skip: -1 vida, +0 pts, avanza
+        if(key==="skip"){
+          const curLives = clampLives(myTeam?.lives ?? MAX_LIVES);
+          if(curLives<=0){ showGameOver(); return; }
+
+          usedPerkThisQuestion=true;
+          await consumePerk("skip",1);
+
+          const tx = await runTransaction(teamPath("lives"), (cur)=>{
+            const v=Number(cur);
+            const base=isNaN(v)?MAX_LIVES:v;
+            return Math.max(0, Math.min(MAX_LIVES, base-1));
+          });
+          const newLives=clampLives(tx?.snapshot?.val());
+          setHearts(newLives);
+
+          if(newLives<=0){
+            setFeedback("⏭️ Skip usado… pero te quedaste sin vidas. 💀", false);
+            showGameOver();
+            return;
+          }
+
+          const next=qIndex+1;
+          await set(teamPath("question"), next);
+          setFeedback("⏭️ Skip: +0 pts y -1 vida.", false);
+
+          setTimeout(()=>{
+            if(next>=QUESTIONS.length){
+              setFeedback("🎉 ¡Fin! Espera instrucciones del host.", true);
+              return;
+            }
+            qIndex=next;
+            renderQuestion();
+          }, 350);
+
+          renderPerkBar();
+          return;
+        }
+
+        if(key==="shield"){
+          perkHint.textContent="🛡️ El Escudo se usa cuando te atacan (en el overlay).";
+          return;
+        }
+
+        if(key==="anchor"){
+          usedPerkThisQuestion=true;
+          await consumePerk("anchor",1);
+          const now=Date.now();
+          anchorElapsedSnap=Math.max(0, now-qStartedAt);
+          anchorUntil=now+5000;
+          perkHint.textContent="⚓ Ancla activada (5s sin bajar puntos).";
+          renderPerkBar();
+          return;
+        }
+
+        if(key==="double"){
+          usedPerkThisQuestion=true;
+          await consumePerk("double",1);
+          doubleTryArmed=true;
+          perkHint.textContent="🧪 Doble intento activado (1 error sin perder vida).";
+          renderPerkBar();
+          return;
+        }
+
+        // Ataque: Timeout
+        pendingAttackPerk=key;
+        openTargetModal(key);
+      };
+
+      perkBar.appendChild(btn);
+    }
+
+    const order=["timeout","skip","anchor","double","shield"];
+    for(const k of order){
+      const c=Number(perks[k]||0);
+      if(c>0) addBtn(k,c);
+      else {
+        const meta=PERK_META[k];
+        const btn=document.createElement("button");
+        btn.className="perkBtn";
+        btn.disabled=true;
+        btn.innerHTML=`${meta.emoji} ${meta.label} <small>×0</small>`;
+        perkBar.appendChild(btn);
+      }
+    }
+  }
+
+  function openTargetModal(perkKey){
+    if(perkKey!=="timeout") return;
+
+    modalTitle.textContent=`Usar ${PERK_META[perkKey].label}`;
+    modalSub.textContent="Elige a qué equipo se lo aplicas.";
+    targetList.innerHTML="";
+
+    const entries=Object.entries(teamsObjCache||{}).map(([id,t])=>({id,...t}));
+    const targets=entries.filter(t=>t.id!==teamId).sort((a,b)=>(b.score||0)-(a.score||0));
+    if(targets.length===0) modalSub.textContent="No hay otros equipos conectados.";
+
+    for(const t of targets){
+      const div=document.createElement("div");
+      div.className="targetCard";
+      div.innerHTML=`
+        <div class="tname">${t.teamName||t.id} <span class="mini">· Score ${t.score??0}</span></div>
+        <div class="tmembers">${(t.members||[]).join(" / ")}</div>`;
+      div.onclick=()=>selectTarget(t.id);
+      targetList.appendChild(div);
+    }
+    targetModalBack.classList.add("show");
+  }
+  function closeTargetModal(){ targetModalBack.classList.remove("show"); pendingAttackPerk=null; }
+  btnCloseModal.onclick=closeTargetModal;
+  targetModalBack.addEventListener("click",(e)=>{ if(e.target===targetModalBack) closeTargetModal(); });
+
+  async function selectTarget(targetId){
+    const key=pendingAttackPerk;
+    if(key!=="timeout") return;
+
+    usedPerkThisQuestion=true;
+    await consumePerk("timeout",1);
+
+    const fxId="fx_"+Math.random().toString(36).slice(2,10);
+    const now=Date.now();
+    const payload={ id:fxId, by:teamId, byName:teamName, startedAt:now, cancelled:false, type:"timeout_block", durationMs:TIMEOUT_MS };
+
+    await set(ref(db, `rooms/${roomId}/effects/${targetId}/active`), payload);
+    perkHint.textContent=`⛔ Timeout enviado a ${teamsObjCache?.[targetId]?.teamName||targetId} (${Math.ceil(TIMEOUT_MS/1000)}s).`;
+    renderPerkBar();
+    closeTargetModal();
+  }
+
+  // ===== Timeout overlay =====
+  function showTimeoutOverlay(byName){
+    attackByTxt.textContent=`Te atacó: ${byName||"otro equipo"}`;
+    overlayTimeout.classList.add("show");
+    shieldWindowUntil=Date.now()+2000;
+
+    const shieldCount=Number(myTeam?.perks?.shield||0);
+    if(shieldCount>0){ btnShield.classList.remove("hidden"); btnShield.disabled=false; }
+    else { btnShield.classList.add("hidden"); }
+
+    setAnswerButtonsEnabled(false);
+  }
+  function hideTimeoutOverlay(){
+    overlayTimeout.classList.remove("show");
+    btnShield.classList.add("hidden");
+    if(!qAnswered) setAnswerButtonsEnabled(true);
+  }
+  async function clearActiveEffect(){ try{ await remove(effectsPath("active")); }catch{} currentEffectId=null; }
+
+  btnShield.onclick=async ()=>{
+    if(Date.now()>shieldWindowUntil) return;
+    const shieldCount=Number(myTeam?.perks?.shield||0);
+    if(shieldCount<=0) return;
+
+    await consumePerk("shield",1);
+    await update(effectsPath("active"), {cancelled:true,cancelledAt:Date.now()});
+    perkHint.textContent="🛡️ Escudo activado: ataque cancelado.";
+    btnShield.disabled=true;
+    hideTimeoutOverlay();
+    await clearActiveEffect();
+    renderPerkBar();
+  };
+
+  function applyIncomingEffect(effect){
+    if(!effect||!effect.id) return;
+    if(currentEffectId===effect.id) return;
+    if(effect.cancelled===true){ clearActiveEffect(); return; }
+    currentEffectId=effect.id;
+
+    if(effect.type==="timeout_block"){
+      showTimeoutOverlay(effect.byName);
+      const endAt=(effect.startedAt||Date.now())+(effect.durationMs||TIMEOUT_MS);
+      const tick=()=>{
+        if(!overlayTimeout.classList.contains("show")) return;
+        if(Date.now()>=endAt){
+          hideTimeoutOverlay();
+          clearActiveEffect();
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      tick();
+      return;
+    }
+    clearActiveEffect();
+  }
+
+  // ===== Scoreboard =====
+  function renderScoreboard(teamsObj,targetEl){
+    const arr=Object.entries(teamsObj||{}).map(([id,t])=>({id,...t})).sort((a,b)=>(b.score||0)-(a.score||0));
+    targetEl.innerHTML="";
+    arr.forEach((t,idx)=>{
+      const div=document.createElement("div");
+      let cls="normal"; if(idx===0) cls="gold"; else if(idx===1) cls="silver"; else if(idx===2) cls="bronze";
+      div.className=`team ${cls}`;
+      div.innerHTML=`
+        <div class="name">${idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":"👥"} ${t.teamName||t.id}</div>
+        <div class="meta">Score: <b>${t.score??0}</b> · Vidas: ${clampLives(t.lives??MAX_LIVES)}</div>
+        <div class="members">${(t.members||[]).join(" / ")}</div>`;
+      targetEl.appendChild(div);
+    });
+    if(arr.length===0) targetEl.innerHTML=`<div class="hint">Sin equipos aún.</div>`;
+  }
+
+  // ===== HUD loop =====
+  let rafTimer=null;
+  function startHudLoop(){
+    const loop=()=>{
+      if(!screenGame.classList.contains("hidden")){
+        const msLeft=Math.max(0, TIME_LIMIT_MS-(Date.now()-qStartedAt));
+        timerTxt.textContent=formatMs(msLeft);
+        pointsTxt.textContent=String(computePointsNow());
+      }
+      rafTimer=requestAnimationFrame(loop);
+    };
+    if(rafTimer) cancelAnimationFrame(rafTimer);
+    rafTimer=requestAnimationFrame(loop);
+  }
+
+  // ===== Listeners =====
+  let listenersStarted=false;
+  function startListeners(){
+    if(listenersStarted) return;
+    listenersStarted=true;
+
+    onValue(ref(db, `rooms/${roomId}`), (snap)=>{
+      const room=snap.val()||{};
+      roomCache=room;
+
+      if(room.gameState==="starting" && room.startAt){
+        lobbyMsg.textContent="🚀 Iniciando…";
+        startCountdown(room.startAt);
+      } else if(room.gameState==="live"){
+        overlayCountdown.classList.remove("show");
+        show(screenGame);
+        statePill.textContent="jugando";
+        ensureQuestionOrder();
+        qIndex=Number(myTeam?.question||0);
+        if(qIndex>=QUESTIONS.length) qIndex=QUESTIONS.length-1;
+        renderQuestion();
+        startHudLoop();
+      } else {
+        show(screenLobby);
+        statePill.textContent="lobby";
+        lobbyMsg.textContent = room.allowJoin ? "✅ Conectado. Esperando inicio…" : "✅ Conectado. Esperando a que el host inicie…";
+      }
+    });
+
+    onValue(ref(db, `rooms/${roomId}/teams`), (snap)=>{
+      const obj=snap.val()||{};
+      teamsObjCache=obj;
+
+      renderScoreboard(obj, teamsLobbyEl);
+      renderScoreboard(obj, teamsSideEl);
+
+      const me=obj?.[teamId];
+      if(me){
+        myTeam=me;
+
+        const L=clampLives(me.lives ?? MAX_LIVES);
+        setHearts(L);
+        if(L<=0) showGameOver();
+
+        const dbQ=Number(me.question||0);
+        if(roomCache.gameState==="live" && !isNaN(dbQ) && dbQ!==qIndex){
+          qIndex=Math.min(dbQ, QUESTIONS.length-1);
+          if(!overlayGameOver.classList.contains("show")) renderQuestion();
+        }
+
+        renderPerkBar();
+      }
+    });
+
+    onValue(effectsPath("active"), (snap)=>{
+      const effect=snap.val();
+      if(!effect) return;
+      if(effect.cancelled===true){ hideTimeoutOverlay(); return; }
+      applyIncomingEffect(effect);
+    });
+  }
+
+  // ===== Countdown =====
+  let countdownRunning=false;
+  function startCountdown(startAt){
+    if(countdownRunning) return;
+    countdownRunning=true;
+    overlayCountdown.classList.add("show");
+    const tick=()=>{
+      const ms=startAt-Date.now();
+      countNum.textContent=String(Math.max(0, Math.ceil(ms/1000)));
+      if(ms<=0){ overlayCountdown.classList.remove("show"); countdownRunning=false; return; }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  // ===== Join =====
+  async function joinAsTeam(){
+    members=normalizeMembers();
+    if(members.length<1) throw new Error("Agrega al menos 1 integrante.");
+
+    const res=await checkRoom();
+    if(!res.ok) throw new Error(res.msg);
+
+    teamId="T"+Math.random().toString(36).slice(2,8).toUpperCase();
+    teamName=await reserveTeamName();
+
+    await set(ref(db, `rooms/${roomId}/teams/${teamId}`), {
+      teamName, members, score:0, lives:MAX_LIVES, ready:true, question:0, perks:{}, lastUpdate:Date.now()
+    });
+
+    localStorage.setItem("pirates_roomId", roomId);
+    localStorage.setItem("pirates_teamId", teamId);
+    localStorage.setItem("pirates_teamName", teamName);
+    localStorage.setItem("pirates_members", JSON.stringify(members));
+
+    // Genera y guarda orden aleatorio de preguntas al unirse
+    ensureQuestionOrder();
+
+    membersPill.textContent=members.join(" / ");
+    teamNamePill.textContent=teamName;
+    setPills();
+    setHearts(MAX_LIVES);
+
+    show(screenLobby);
+    statePill.textContent="lobby";
+    startListeners();
+  }
+
+  btnCheck.onclick=async ()=>{
+    try{
+      const res=await checkRoom();
+      regMsg.textContent=res.msg;
+      regMsg.style.color=res.ok?"#bfffd3":"#ffd0d0";
+    }catch(e){
+      regMsg.textContent=e.message;
+      regMsg.style.color="#ffd0d0";
+    }
+  };
+  btnJoin.onclick=async ()=>{
+    try{
+      regMsg.textContent="Uniéndote...";
+      regMsg.style.color="#cfe1ff";
+      await joinAsTeam();
+      lobbyMsg.textContent="✅ Listo. Esperando a que el host inicie…";
+    }catch(e){
+      regMsg.textContent=e.message;
+      regMsg.style.color="#ffd0d0";
+    }
+  };
+
+  // ===== Boot =====
+  (async function boot(){
+    if(roomId && teamId){
+      try{
+        const snap=await get(ref(db, `rooms/${roomId}/teams/${teamId}`));
+        const roomSnap=await get(ref(db, `rooms/${roomId}`));
+        if(snap.exists() && roomSnap.exists()){
+          myTeam=snap.val();
+          roomCache=roomSnap.val();
+          teamName=myTeam.teamName||teamName;
+          members=myTeam.members||members;
+
+          membersPill.textContent=members.join(" / ");
+          teamNamePill.textContent=teamName;
+          setPills();
+          setHearts(clampLives(myTeam.lives ?? MAX_LIVES));
+
+          // asegura orden aleatorio al recargar
+          ensureQuestionOrder();
+
+          if(roomCache.gameState==="live"){
+            show(screenGame);
+            statePill.textContent="jugando";
+            qIndex=Number(myTeam.question||0);
+            if(qIndex>=QUESTIONS.length) qIndex=QUESTIONS.length-1;
+            renderQuestion();
+            startHudLoop();
+          } else {
+            show(screenLobby);
+            statePill.textContent="lobby";
+          }
+
+          startListeners();
+          return;
+        } else {
+          localStorage.removeItem("pirates_teamId");
+          localStorage.removeItem("pirates_teamName");
+          localStorage.removeItem("pirates_members");
+        }
+      }catch{}
+    }
+    show(screenRegister);
+    statePill.textContent="registro";
+    setHearts(MAX_LIVES);
+  })();
+</script>
+</body>
+</html>
