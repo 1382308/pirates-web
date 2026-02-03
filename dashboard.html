@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Host – Sala Piratas</title>
+  <style>
+    :root{ --bg:#0b1220; --card:#121b2e; --muted:#8fa3c6; --line:#24314e; --gold:#FFD700; --silver:#C0C0C0; --bronze:#CD7F32; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#081027, #060a14);color:#e8eefc}
+    header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(6,10,20,.9);backdrop-filter:blur(8px)}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+    .card{background:rgba(18,27,46,.86);border:1px solid var(--line);border-radius:14px;padding:14px}
+    h2{font-size:14px;margin:0 0 10px}
+    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
+    input,button{font:inherit}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:#e8eefc}
+    button{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:#e8eefc;cursor:pointer}
+    button.primary{background:#1b2a52;border-color:#2a3b67}
+    button.ok{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35)}
+    button.bad{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35)}
+    .row{display:flex;gap:10px}
+    .row > *{flex:1}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
+    .teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .team{border:1px solid #ffffff22;border-radius:12px;padding:10px;background:rgba(10,16,32,.6)}
+    .team .name{font-weight:900}
+    .team .meta{color:var(--muted);font-size:12px;margin-top:4px}
+    .team .members{color:#cfe1ff;font-size:12px;margin-top:8px}
+    .gold{border-color:var(--gold)} .silver{border-color:var(--silver)} .bronze{border-color:var(--bronze)} .normal{border-color:#ffffff33}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    .sep{height:1px;background:var(--line);margin:12px 0}
+    .status{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+<header>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="pill">🏴‍☠️ Host</div>
+    <div class="pill">Sala: <span id="roomPill" class="mono">—</span></div>
+    <div class="pill">Estado: <span id="statePill">—</span></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button id="btnCopy" class="primary">Copiar Room ID</button>
+    <button id="btnReset" class="bad">Reset sala</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <h2>Configurar sala</h2>
+
+      <label>Room ID</label>
+      <input id="roomId" placeholder="Ej: PIRATAS-SEC3A" />
+
+      <div class="row">
+        <div>
+          <label>Conexiones</label>
+          <button id="btnAllow" class="ok">✅ Permitir uniones</button>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnBlock" class="bad">⛔ Bloquear uniones</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <label>Iniciar juego</label>
+      <button id="btnStart" class="primary">🚀 Iniciar (5s)</button>
+
+      <div class="sep"></div>
+
+      <div class="status" id="hostMsg">—</div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <div>
+          <h2>Equipos en juego</h2>
+          <div class="status">Top 3 con borde 🥇🥈🥉 · Se actualiza en vivo</div>
+        </div>
+        <div style="text-align:right">
+          <div class="pill">👥 Equipos: <span id="teamCount">0</span></div>
+          <div class="pill">✅ Listos: <span id="readyCount">0</span></div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="teams" id="teams"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getDatabase, ref, set, update, get, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA6xPT1PT7Ce74zK8psf3uFSD5s7K-uMXI",
+    authDomain: "pirates-59cc3.firebaseapp.com",
+    databaseURL: "https://pirates-59cc3-default-rtdb.firebaseio.com",
+    projectId: "pirates-59cc3",
+    storageBucket: "pirates-59cc3.firebasestorage.app",
+    messagingSenderId: "717943731099",
+    appId: "1:717943731099:web:dda5b40c954b1aa7d8273e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const roomIdEl = document.getElementById("roomId");
+  const roomPill = document.getElementById("roomPill");
+  const statePill = document.getElementById("statePill");
+  const hostMsg = document.getElementById("hostMsg");
+  const teamsEl = document.getElementById("teams");
+  const teamCountEl = document.getElementById("teamCount");
+  const readyCountEl = document.getElementById("readyCount");
+
+  const btnAllow = document.getElementById("btnAllow");
+  const btnBlock = document.getElementById("btnBlock");
+  const btnStart = document.getElementById("btnStart");
+  const btnReset = document.getElementById("btnReset");
+  const btnCopy = document.getElementById("btnCopy");
+
+  let roomId = localStorage.getItem("pirates_roomId") || "";
+  roomIdEl.value = roomId;
+  roomPill.textContent = roomId || "—";
+
+  function requireRoom(){
+    roomId = roomIdEl.value.trim();
+    if(!roomId) throw new Error("Escribe un Room ID.");
+    localStorage.setItem("pirates_roomId", roomId);
+    roomPill.textContent = roomId;
+  }
+
+  async function ensureRoomExists(){
+    requireRoom();
+    const snap = await get(ref(db, `rooms/${roomId}`));
+    if(!snap.exists()){
+      await set(ref(db, `rooms/${roomId}`), {
+        createdAt: Date.now(),
+        allowJoin: false,
+        gameState: "lobby",
+        startAt: null
+      });
+      hostMsg.textContent = "Sala creada.";
+    } else {
+      hostMsg.textContent = "Sala cargada.";
+    }
+  }
+
+  function listenRoom(){
+    requireRoom();
+
+    onValue(ref(db, `rooms/${roomId}`), (snap)=>{
+      const v = snap.val() || {};
+      statePill.textContent = v.gameState || "—";
+    });
+
+    onValue(ref(db, `rooms/${roomId}/teams`), (snap)=>{
+      const obj = snap.val() || {};
+      const arr = Object.entries(obj).map(([id,t])=>({id,...t}));
+      arr.sort((a,b)=>(b.score||0)-(a.score||0));
+      teamCountEl.textContent = arr.length;
+      readyCountEl.textContent = arr.filter(t=>t.ready===true).length;
+
+      teamsEl.innerHTML = "";
+      arr.forEach((t, idx)=>{
+        const div = document.createElement("div");
+        let cls="normal";
+        if(idx===0) cls="gold";
+        else if(idx===1) cls="silver";
+        else if(idx===2) cls="bronze";
+        div.className = `team ${cls}`;
+        div.innerHTML = `
+          <div class="name">${idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":"👥"} ${t.teamName || t.id}</div>
+          <div class="meta">Score: <b>${t.score ?? 0}</b> · Vidas: ${t.lives ?? 5}</div>
+          <div class="members">${(t.members||[]).join(" / ")}</div>
+        `;
+        teamsEl.appendChild(div);
+      });
+
+      if(arr.length===0){
+        teamsEl.innerHTML = `<div class="status">Aún no hay equipos. Permite conexiones y comparte el Room ID.</div>`;
+      }
+    });
+  }
+
+  btnAllow.onclick = async ()=>{
+    try{
+      await ensureRoomExists();
+      await update(ref(db, `rooms/${roomId}`), { allowJoin: true, gameState: "lobby" });
+      hostMsg.textContent = "Conexiones permitidas.";
+      listenRoom();
+    }catch(e){ hostMsg.textContent = e.message; }
+  };
+
+  btnBlock.onclick = async ()=>{
+    try{
+      await ensureRoomExists();
+      await update(ref(db, `rooms/${roomId}`), { allowJoin: false });
+      hostMsg.textContent = "Conexiones bloqueadas.";
+      listenRoom();
+    }catch(e){ hostMsg.textContent = e.message; }
+  };
+
+  btnStart.onclick = async ()=>{
+    try{
+      await ensureRoomExists();
+      const startAt = Date.now() + 5000;
+
+      const teamsSnap = await get(ref(db, `rooms/${roomId}/teams`));
+      const teamsObj = teamsSnap.val() || {};
+      const teamsArr = Object.values(teamsObj);
+      if(teamsArr.length === 0) throw new Error("No hay equipos aún.");
+      const readyCount = teamsArr.filter(t=>t.ready===true).length;
+      if(readyCount === 0) throw new Error("Ningún equipo está en 'Listo'.");
+
+      await update(ref(db, `rooms/${roomId}`), {
+        allowJoin: false,
+        gameState: "starting",
+        startAt,
+        lastUpdate: Date.now()
+      });
+
+      hostMsg.textContent = "Iniciando...";
+
+      setTimeout(async ()=>{
+        try{ await update(ref(db, `rooms/${roomId}`), { gameState: "live" }); }catch{}
+      }, 5200);
+
+      listenRoom();
+    }catch(e){ hostMsg.textContent = e.message; }
+  };
+
+  btnReset.onclick = async ()=>{
+    try{
+      requireRoom();
+      if(!confirm("¿Resetear la sala? Borra equipos, efectos y estado.")) return;
+      await remove(ref(db, `rooms/${roomId}`));
+      hostMsg.textContent = "Sala eliminada. Vuelve a permitir uniones para recrearla.";
+      statePill.textContent = "—";
+      teamsEl.innerHTML = "";
+    }catch(e){ hostMsg.textContent = e.message; }
+  };
+
+  btnCopy.onclick = async ()=>{
+    try{
+      requireRoom();
+      await navigator.clipboard.writeText(roomId);
+      hostMsg.textContent = "Room ID copiado.";
+    }catch{ hostMsg.textContent = "No se pudo copiar."; }
+  };
+
+  if(roomId){
+    ensureRoomExists().then(listenRoom).catch(()=>{});
+  }
+</script>
+</body>
+</html>
