@@ -2,1029 +2,828 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jugador – Piratas</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Pirates Trig Race - Final v23 (Instant Reconnect)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root{
-      --bg:#060a14; --card:#101a2e; --line:#223153; --muted:#92a7cf;
-      --gold:#FFD700; --silver:#C0C0C0; --bronze:#CD7F32;
+    :root {
+      --neon-blue: #38bdf8; --neon-gold: #fbbf24; --neon-green: #34d399; --neon-red: #f43f5e; --neon-purple: #a855f7;
+      --panel-bg: #0f172a; --font-ui: "Rajdhani", sans-serif; --font-title: "Bangers", cursive;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#050816,#060a14);color:#e8eefc}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(6,10,20,.92);backdrop-filter:blur(8px);z-index:10}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    .wrap{max-width:1220px;margin:0 auto;padding:16px}
-    .card{background:rgba(16,26,46,.88);border:1px solid var(--line);border-radius:16px;padding:14px}
-    h1{font-size:18px;margin:0 0 10px}
-    h2{font-size:14px;margin:0 0 10px;color:#d9e6ff}
-    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
-    input,button{font:inherit}
-    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#091024;color:#e8eefc}
-    button{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a1020;color:#e8eefc;cursor:pointer}
-    button.primary{background:#1b2a52;border-color:#2a3b67}
-    button.ok{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    .row{display:flex;gap:10px}
-    .row>*{flex:1}
-    .hint{color:var(--muted);font-size:12px;line-height:1.35}
-    .hidden{display:none !important}
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; height: 100vh; overflow: hidden; background: #020617; color: white; font-family: var(--font-ui); display: grid; grid-template-columns: 1fr 450px; }
 
-    .gridLobby{display:grid;grid-template-columns:1fr 360px;gap:14px}
-    .teams{display:flex;flex-direction:column;gap:10px}
-    .team{border:1px solid #ffffff22;border-radius:12px;padding:10px;background:rgba(9,16,36,.6)}
-    .team .name{font-weight:800}
-    .team .meta{color:var(--muted);font-size:12px;margin-top:4px}
-    .team .members{color:#cfe1ff;font-size:12px;margin-top:8px}
-    .gold{border-color:var(--gold)}
-    .silver{border-color:var(--silver)}
-    .bronze{border-color:var(--bronze)}
-    .normal{border-color:#ffffff33}
+    /* 3D WORLD */
+    #viewport-3d { position: relative; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at center, #64748b, #1e293b); }
+    canvas { display: block; width: 100% !important; height: 100% !important; }
+    .boat-label { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; pointer-events: none; transform: translate(-50%, -120%); white-space: nowrap; display: none; z-index: 10; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; text-shadow: 0 2px 2px black; transition: top 0.1s, left 0.1s; }
 
-    .hearts{display:flex;gap:6px;align-items:center}
-    .heart{font-size:18px}
-    .heart.off{opacity:.25}
+    /* STATS OVERLAY */
+    #viewport-ui { position: absolute; top: 15px; right: 15px; z-index: 20; display: flex; gap: 10px; }
+    .stat-pill { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--neon-blue); padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 18px; color: white; text-shadow: 0 1px 2px black; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; }
 
-    .gameWrap{display:grid;grid-template-columns:1fr 340px;gap:14px}
-    .mainGame{border:1px solid var(--line);border-radius:16px;background:rgba(16,26,46,.65);overflow:hidden}
-    .imgBox{height:min(64vh,560px);background:#050815;display:flex;align-items:center;justify-content:center;position:relative}
-    .imgBox img{width:100%;height:100%;object-fit:cover;display:block}
-    .hudLeft{position:absolute;top:10px;left:10px;display:flex;gap:10px;align-items:center}
-    .hudRight{position:absolute;top:10px;right:10px;display:flex;gap:10px;align-items:center}
-    .questionBox{padding:12px 14px;border-top:1px solid var(--line)}
-    .answers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;border-top:1px solid var(--line)}
-    .answers button{padding:12px 10px;min-height:46px}
-    .feedback{padding:10px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;min-height:34px}
+    /* OVERLAYS */
+    #kraken-overlay, #frozen-overlay, #gameover-overlay, #targeting-overlay, #incoming-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
+    #gameover-overlay { background: rgba(10, 0, 0, 0.95); z-index: 100; }
+    #incoming-overlay { background: rgba(220, 38, 38, 0.9); animation: flashRed 0.5s infinite alternate; }
+    @keyframes flashRed { from { background: rgba(220, 38, 38, 0.8); } to { background: rgba(153, 27, 27, 0.9); } }
+    
+    #start-overlay {
+      position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.22), rgba(0,0,0,0.92));
+      z-index: 120; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto;
+    }
+    .start-title {
+      font-family: var(--font-title); font-size: 70px; color: var(--neon-gold); text-shadow: 0 0 30px rgba(0,0,0,0.8);
+      letter-spacing: 2px; margin: 0 0 8px 0; text-align: center;
+    }
+    .start-sub { color: #cbd5e1; font-size: 18px; text-align: center; margin: 0 0 18px 0; }
+    .start-timer {
+      font-family: var(--font-title); font-size: 120px; color: white; text-shadow: 0 0 35px rgba(0,0,0,0.9);
+      line-height: 1; transform: translateY(-6px);
+    }
+    
+    .alert-title { font-family: var(--font-title); font-size: 60px; color: white; text-shadow: 0 0 20px black; text-transform: uppercase; margin-bottom: 10px; text-align:center; letter-spacing: 2px; }
+    .alert-sub { font-size: 20px; color: white; margin-bottom: 20px; text-align: center; }
+    .alert-timer { color:var(--neon-gold); font-size:50px; font-weight:bold; text-shadow: 2px 2px 0px black; }
+    .skull-img { width: 140px; height: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 15px red); animation: pulse 2s infinite; }
+    
+    #target-list { width: 90%; max-width: 400px; max-height: 70%; overflow-y: auto; background: #1e293b; border-radius: 12px; padding: 10px; border: 2px solid var(--neon-red); }
+    .target-btn { width: 100%; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-family: var(--font-ui); font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
+    .target-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: var(--neon-red); }
+    .target-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+    .target-status { font-size: 12px; color: #94a3b8; font-weight: normal; }
 
-    .side{border:1px solid var(--line);border-radius:16px;background:rgba(16,26,46,.65);padding:12px;display:flex;flex-direction:column;gap:12px}
-    .perkBar{display:flex;flex-wrap:wrap;gap:8px}
-    .perkBtn{padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:#0a1020;color:#e8eefc;font-size:12px}
-    .perkBtn small{opacity:.7}
-    .perkBtn:disabled{opacity:.4}
-    .sep{height:1px;background:var(--line);margin:6px 0}
+    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,.72);z-index:9999;text-align:center;padding:20px}
-    .overlay.show{display:flex}
-    .overlay .big{font-size:38px;font-weight:900}
-    .overlay .sub{color:#cfe1ff}
-    .count{font-size:54px;font-weight:900}
+    /* UI PANEL */
+    #command-panel { background: var(--panel-bg); border-left: 2px solid var(--neon-blue); display: flex; flex-direction: column; position: relative; box-shadow: -5px 0 30px rgba(0,0,0,0.5); z-index: 20; }
+    .panel-header { padding: 15px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); }
+    h1 { margin: 0; font-family: var(--font-title); font-size: 28px; color: var(--neon-gold); letter-spacing: 1px; }
+    #screen-container { flex: 1; position: relative; padding: 15px; overflow-y: auto; }
+    .screen { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.4s ease; }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .flagWrap{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:720px}
-    .flagWrap img{max-width:min(72vw,640px);max-height:52vh;border-radius:14px;border:1px solid #ffffff33;background:#050815}
-    .shieldBtn{padding:12px 14px;border-radius:12px;border:1px solid #ffffff44;background:rgba(16,26,46,.75);font-weight:800}
+    /* CONTROLS */
+    input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-family: var(--font-ui); font-size: 16px; outline: none; }
+    input:focus { border-color: var(--neon-blue); }
+    button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-family: var(--font-ui); font-weight: 800; font-size: 16px; text-transform: uppercase; cursor: pointer; margin-top: 5px; transition: 0.2s; }
+    .btn-main { background: var(--neon-blue); color: #0f172a; }
+    .btn-main:disabled { background: #334155 !important; color: #64748b !important; cursor: not-allowed; opacity: 0.6; }
+    .btn-counter { background: white; color: #dc2626; font-size: 22px; padding: 20px; border: 4px solid #dc2626; box-shadow: 0 0 20px white; animation: pulse 0.5s infinite; }
 
-    .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9998;padding:18px}
-    .modalBack.show{display:flex}
-    .modal{width:min(760px,96vw);background:rgba(16,26,46,.96);border:1px solid var(--line);border-radius:16px;padding:14px}
-    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .modalList{margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .targetCard{border:1px solid #ffffff22;border-radius:12px;padding:10px;background:rgba(9,16,36,.6);cursor:pointer}
-    .targetCard:hover{border-color:#8ab4ff55}
-    .targetCard .tname{font-weight:900}
-    .targetCard .tmembers{color:#cfe1ff;font-size:12px;margin-top:6px}
-    .mini{font-size:12px;color:var(--muted)}
+    #qText { font-size: 18px; font-weight: 700; margin-bottom: 15px; line-height: 1.3; min-height: 40px; text-align: center; }
+    .opts-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: left; width: 100%; }
+    .opt-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--neon-blue); }
+    .opt-btn.hidden { opacity: 0.1; pointer-events: none; }
+    .opt-btn.hint { border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+
+    /* BUILDER */
+    #builder-area { display: none; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
+    #triCanvas { background: #1e293b; border-radius: 8px; display: block; border: 1px solid #475569; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); width: 100%; max-width: 350px; height: 200px; object-fit: contain; }
+    .equation-container { display: flex; align-items: center; gap: 6px; justify-content: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 5px; }
+    .eq-sign { font-size: 20px; font-weight: bold; color: var(--neon-gold); }
+    .degree-symbol { font-size: 18px; color: #cbd5e1; margin-left: -4px; }
+    .fraction { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .frac-line { width: 100%; height: 2px; background: white; border-radius: 2px; }
+    .slot { width: 50px; height: 32px; border: 2px dashed #475569; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+    .slot.filled { border-style: solid; border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.2); }
+    .slot.filled:hover { border-color: var(--neon-red); background: rgba(244, 63, 94, 0.2); }
+    .block-pool { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 5px; min-height: 60px; width: 100%; background: rgba(0,0,0,0.2); border-radius: 8px; }
+    .block-pool.drag-over { background: rgba(255,255,255,0.1); }
+    .math-block { background: var(--neon-blue); color: #0f172a; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: grab; user-select: none; box-shadow: 0 3px 0 #0369a1; transition: transform 0.1s; }
+    .math-block:active { cursor: grabbing; }
+    .math-block.dragging { opacity: 0.5; }
+
+    /* PERKS */
+    .perks-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; width: 100%; }
+    .perk-btn { padding: 8px; font-size: 10px; display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; border-radius: 8px; position:relative; background: rgba(255,255,255,0.05); color: #64748b; opacity: 0.4; cursor: not-allowed; transition: all 0.3s; }
+    .perk-btn.active { opacity: 1; cursor: pointer; background: rgba(255,255,255,0.15); color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .perk-btn span { font-size: 20px; margin-bottom: 2px; filter: grayscale(100%); transition: 0.3s; }
+    .perk-btn.active span { filter: grayscale(0%); }
+    .perk-badge { position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    #btnCannon.active { border-color: var(--neon-red); } #btnShield.active { border-color: var(--neon-blue); } #btnParrot.active { border-color: var(--neon-purple); } #btn5050.active { border-color: var(--neon-gold); } #btnHeal.active { border-color: var(--neon-green); } #btnWind.active { border-color: white; box-shadow: 0 0 10px white; }
+
+    .podium-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid transparent; margin-bottom: 8px; gap:10px; }
+    .rank-1 { border-color: var(--neon-gold); background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), transparent); }
+    .rank-2 { border-color: #94a3b8; } .rank-3 { border-color: #d97706; }
+
+    @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; } #command-panel { border-left: none; border-top: 2px solid var(--neon-blue); } }
   </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <div class="pill">🏴‍☠️ Jugador</div>
-    <div class="pill">Sala: <span id="roomPill" class="mono">—</span></div>
-    <div class="pill">Equipo: <span id="teamPill" class="mono">—</span></div>
-    <div class="pill">Estado: <span id="statePill">registro</span></div>
-  </div>
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <div class="hearts" title="Vidas">
-      <span class="pill">❤️ Vidas</span>
-      <span id="hearts"></span>
+  <audio id="rainSound" loop preload="auto" src="lluvia.mp3"></audio>
+  <audio id="windSound" loop preload="auto" src="viento.mp3"></audio>
+
+  <div id="viewport-3d">
+    <div id="labelsContainer"></div>
+    <div id="viewport-ui"><div class="stat-pill">❤️ <span id="lifeText">3</span></div><div class="stat-pill">🏁 <span id="stagePill">0/30</span></div></div>
+    
+    <div id="start-overlay">
+      <div class="start-title">¡LISTOS!</div>
+      <div class="start-sub">La carrera inicia en…</div>
+      <div id="start-timer" class="start-timer">5</div>
     </div>
-  </div>
-</div>
-
-<div class="wrap">
-
-  <div id="screenRegister" class="card">
-    <h1>Registro de equipo</h1>
-    <div class="hint">Escribe el <b>Room ID</b> y los nombres (1 a 4). Al presionar <b>Listo</b> se asigna una <b>tripulación épica</b> irrepetible.</div>
-
-    <label>Room ID</label>
-    <input id="roomId" placeholder="Ej: PIRATAS-SEC3A" />
-
-    <div class="row">
-      <div><label>Integrante 1</label><input class="m" placeholder="Nombre" /></div>
-      <div><label>Integrante 2</label><input class="m" placeholder="Nombre (opcional)" /></div>
+    
+    <div id="kraken-overlay">
+      <div class="alert-title" style="color:var(--neon-purple); text-shadow:0 0 40px var(--neon-purple); font-size:64px;">¡LA BESTIA EMERGE!</div>
+      <div class="alert-sub" style="color:#d8b4fe;">Tentáculos gigantes te han atrapado...</div>
+      <div id="kraken-timer" class="alert-timer">5</div>
     </div>
-    <div class="row">
-      <div><label>Integrante 3</label><input class="m" placeholder="Nombre (opcional)" /></div>
-      <div><label>Integrante 4</label><input class="m" placeholder="Nombre (opcional)" /></div>
-    </div>
-
-    <div class="row">
-      <button id="btnCheck" class="primary">🔎 Verificar sala</button>
-      <button id="btnJoin" class="ok">✅ Listo</button>
-    </div>
-
-    <div class="hint" style="margin-top:10px" id="regMsg">—</div>
+    
+    <div id="frozen-overlay"><div class="alert-title">¡DAÑO CRÍTICO!</div><div class="alert-sub">Reparando casco...</div><div id="frozen-timer" class="alert-timer">10</div></div>
+    
+    <div id="incoming-overlay" style="display:none;"><div class="alert-title">¡ALERTA!</div><div class="alert-sub" style="font-size:24px; font-weight:bold;">¡CAÑONAZO ENTRANTE!</div><button id="btn-counter-shield" class="btn-counter">¡ACTIVAR ESCUDO!</button><div style="margin-top:20px; color:white;">IMPACTO EN: <span id="inc-timer" class="alert-timer">3</span></div></div>
+    <div id="targeting-overlay" style="display:none; background:rgba(0,0,0,0.9);"><h2 style="color:var(--neon-red); font-family:var(--font-title); margin-bottom:20px;">SELECCIONA OBJETIVO</h2><div id="target-list"></div><button id="cancelTargetBtn" style="margin-top:20px; width:200px; background:#334155;">CANCELAR</button></div>
+    <div id="gameover-overlay"><img src="gameover.png" alt="Skull" class="skull-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><div style="font-size:80px; display:none;">💀</div><div class="alert-title">GAME OVER</div><div style="color:var(--neon-red); font-size:20px;">Tu viaje termina aquí.</div></div>
   </div>
 
-  <div id="screenLobby" class="gridLobby hidden">
-    <div class="card">
-      <h2>Lobby</h2>
-      <div class="hint" id="lobbyMsg">—</div>
-      <div style="margin-top:12px" class="hint">Integrantes: <span id="membersPill" class="mono">—</span></div>
-      <div style="margin-top:12px" class="hint">Tripulación asignada: <span id="teamNamePill" class="mono">—</span></div>
-      <div class="sep"></div>
-      <div class="hint">Cuando el host inicie, verás una cuenta regresiva de 5 segundos.</div>
+  <aside id="command-panel">
+    <div class="panel-header">
+      <h1>PIRATES TRIG</h1>
+      <div style="font-size:12px; color:#64748b;">MASTER FINAL</div>
     </div>
 
-    <div class="card">
-      <h2>Scoreboard</h2>
-      <div class="teams" id="teamsLobby"></div>
-    </div>
-  </div>
-
-  <div id="screenGame" class="gameWrap hidden">
-    <div class="mainGame">
-      <div class="imgBox">
-        <div class="hudLeft">
-          <div class="pill">⏱️ <span id="timerTxt">—</span></div>
-          <div class="pill">⭐ Pts: <span id="pointsTxt">—</span></div>
+    <div id="screen-container">
+      <div id="entryScreen" class="screen active">
+        <p style="color:#cbd5e1; font-size:14px; margin-bottom:10px;">Ingresa a la tripulación.</p>
+        <input id="roomInput" placeholder="CÓDIGO DE SALA" style="text-transform:uppercase; font-weight:bold;" maxlength="8" />
+        <input id="member1" placeholder="Tu Nombre" />
+        <input id="member2" placeholder="Tripulante 2" />
+        <button id="joinBtn" class="btn-main">ZARPAR</button>
+        <div id="joinError" style="color:var(--neon-red); margin-top:10px; font-size:12px; text-align:center;"></div>
+        <div style="margin-top:10px; color:#94a3b8; font-size:12px; text-align:center;">
+          Tip: si recargas (F5), se recupera tu sesión automáticamente.
         </div>
-        <div class="hudRight">
-          <div class="pill">📍 Pregunta <span id="qNum">—</span>/20</div>
+      </div>
+
+      <div id="waitingScreen" class="screen" style="text-align:center; justify-content:center;">
+        <h2 style="color:var(--neon-blue);">EN PUERTO</h2>
+        <div style="margin:20px auto; width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--neon-blue); border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <style>@keyframes spin {to{transform:rotate(360deg)}}</style>
+        <p id="waitingText" style="color:#94a3b8;">Esperando marea alta...</p>
+        <div id="teamNameDisplay" style="color:var(--neon-gold); font-weight:bold; text-transform:uppercase; margin-top:10px; border:1px solid var(--neon-gold); padding:5px 10px; border-radius:20px; display:inline-block;"></div>
+      </div>
+
+      <div id="hud" class="screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-start;">
+          <div id="qText">Preparando cañones...</div>
+          <div id="opts" class="opts-grid"></div>
+          <div id="builder-area">
+            <canvas id="triCanvas" width="320" height="200"></canvas>
+            <div style="font-size:12px; color:#94a3b8; text-align:center; margin-bottom:5px;">Arrastra los bloques:</div>
+            <div class="equation-container">
+              <div id="slotFunc" class="slot" data-type="func"></div>
+              <div id="slotAngle" class="slot" data-type="angle"></div>
+              <div class="degree-symbol">°</div><div class="eq-sign">=</div>
+              <div class="fraction">
+                <div id="slotNum" class="slot" data-type="num"></div><div class="frac-line"></div><div id="slotDen" class="slot" data-type="den"></div>
+              </div>
+            </div>
+            <div id="blockPool" class="block-pool"></div>
+            <button id="btnSubmitBuild" class="btn-main" style="padding:10px; font-size:14px; margin-top:5px;">FUEGO</button>
+          </div>
         </div>
-        <img id="mainImg" alt="escena" src="q01.jpg" />
+        <div id="msg" style="text-align:center; margin:10px 0; font-weight:bold; height:20px; color:var(--neon-gold);"></div>
+        <div class="perks-grid">
+          <button id="btnCannon" class="perk-btn" disabled><span>💣</span>CAÑÓN<div class="perk-badge" id="bdgCannon">0</div></button>
+          <button id="btnShield" class="perk-btn" disabled><span>🛡️</span>ESCUDO<div class="perk-badge" id="bdgShield">0</div></button>
+          <button id="btnParrot" class="perk-btn" disabled><span>🦜</span>LORO<div class="perk-badge" id="bdgParrot">0</div></button>
+          <button id="btn5050" class="perk-btn" disabled><span>✂️</span>50/50<div class="perk-badge" id="bdg5050">0</div></button>
+          <button id="btnHeal" class="perk-btn" disabled><span>🍺</span>RON<div class="perk-badge" id="bdgHeal">0</div></button>
+          <button id="btnWind" class="perk-btn" disabled><span>💨</span>VIENTO<div class="perk-badge" id="bdgWind">0</div></button>
+        </div>
       </div>
 
-      <div class="questionBox"><div id="qText"></div></div>
-      <div class="answers" id="answersRow"></div>
-      <div class="feedback" id="feedback">—</div>
+      <div id="podiumScreen" class="screen">
+        <h2 style="text-align:center; color:var(--neon-gold); margin-bottom:5px;">RESULTADOS</h2>
+        <p style="text-align:center; color:#94a3b8; font-size:13px; margin-bottom:20px;">PARTIDA FINALIZADA</p>
+        <div id="podiumList" style="flex:1; overflow-y:auto;"></div>
+        <div style="margin-top:20px;"><button id="backToLobbyBtn" class="btn-main" disabled style="background:#1e293b;">REGRESAR AL LOBBY</button></div>
+        <div id="podiumHint" style="margin-top:10px; color:#94a3b8; font-size:12px; text-align:center;">El botón se habilitará automáticamente.</div>
+      </div>
     </div>
+  </aside>
 
-    <div class="side">
-      <div>
-        <h2>Perks (máx 5) – usa 1 por pregunta</h2>
-        <div class="perkBar" id="perkBar"></div>
-        <div class="mini" id="perkHint">Ganas una carta aleatoria al acertar.</div>
-      </div>
-      <div class="sep"></div>
-      <div>
-        <h2>Equipos</h2>
-        <div class="teams" id="teamsSide"></div>
-      </div>
-    </div>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="./firebase-config.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getDatabase, ref, get, set, update, onValue, push, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-</div>
+    if (!window.FIREBASE_CONFIG) { alert("Falta firebase-config.js"); throw new Error("Missing config"); }
+    const TOTAL_QUESTIONS = 30;
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-<div id="overlayCountdown" class="overlay">
-  <div class="big">¡Zarpamos!</div>
-  <div class="sub">Iniciamos en…</div>
-  <div class="count" id="countNum">5</div>
-</div>
+    const PIRATE_DATA = [
+      { name: "🏴‍☠️ La Perla Negra", color: 0x111111 }, { name: "👻 El Holandés Errante", color: 0x2ec4b6 },
+      { name: "🚩 Furia Escarlata", color: 0xd62828 }, { name: "👑 Venganza de la Reina", color: 0x540b0e },
+      { name: "⚔️ Leviatán de Acero", color: 0x717c89 }, { name: "💰 Caldero de Oro", color: 0xffb703 },
+      { name: "🌊 Manta Raya Azul", color: 0x0077b6 }, { name: "☁️ Espectro de Niebla", color: 0xe0e1dd },
+      { name: "🐙 Kraken Púrpura", color: 0x7209b7 }, { name: "🐯 Diente de Sable", color: 0xe9c46a },
+      { name: "🐍 Tormenta Verde", color: 0x38b000 }, { name: "☀️ Corsarios del Sol", color: 0xf48c06 },
+      { name: "🛡️ Guardia Real", color: 0x1d3557 }, { name: "💀 Huesos Cruzados", color: 0xfefae0 },
+      { name: "🐉 Dragón de Jade", color: 0x008000 }, { name: "🧜‍♀️ Sirena Oscura", color: 0x480ca8 },
+      { name: "🐟 Barracuda", color: 0x90be6d }, { name: "🌸 Rosa de los Vientos", color: 0xff006e },
+      { name: "⚫ Abismo Negro", color: 0x000000 }, { name: "🛡️ Titán de Bronce", color: 0xcd7f32 }
+    ];
 
-<div id="overlayTimeout" class="overlay">
-  <div class="flagWrap">
-    <img id="opFlag" src="op_flag.png" alt="bandera pirata" />
-    <div class="big">⛔ Interferencia pirata</div>
-    <div class="sub" id="attackByTxt">—</div>
-    <button id="btnShield" class="shieldBtn hidden">🛡️ Activar Escudo</button>
-    <div class="mini">El tiempo sigue corriendo…</div>
-  </div>
-</div>
+    const QUESTIONS_DB = [
+      { type: "choice", prompt: "¿Qué es un triángulo rectángulo?", choices: ["Tiene un ángulo recto","Todos lados iguales","Dos ángulos obtusos","No tiene ángulos"], answer: 0 },
+      { type: "choice", prompt: "¿Cómo se llama el lado más largo?", choices: ["Cateto","Hipotenusa","Base","Altura"], answer: 1 },
+      { type: "choice", prompt: "¿Qué son los catetos?", choices: ["Lados del ángulo recto","Lado más largo","Lados curvos","Lados opuestos al recto"], answer: 0 },
+      { type: "choice", prompt: "¿Dónde se usa Pitágoras?", choices: ["Cualquier triángulo","Solo rectángulos","Solo equiláteros","Solo isósceles"], answer: 1 },
+      { type: "choice", prompt: "¿Fórmula de Pitágoras?", choices: ["a+b=c","a²+b²=c²","a×b=c","a²-b²=c²"], answer: 1 },
+      { type: "choice", prompt: "En Pitágoras, c representa…", choices: ["Un cateto","La hipotenusa","Un ángulo","El área"], answer: 1 },
+      { type: "choice", prompt: "¿Qué son las razones trigonométricas?", choices: ["Comparaciones de lados","Potencias","Polígonos","Áreas"], answer: 0 },
+      { type: "choice", prompt: "Razones básicas:", choices: ["Seno, coseno, tangente","Área, volumen","Suma, resta","Moda, media"], answer: 0 },
+      { type: "choice", prompt: "Seno es…", choices: ["Op/Hip","Ady/Hip","Op/Ady","Hip/Op"], answer: 0 },
+      { type: "choice", prompt: "Coseno es…", choices: ["Op/Hip","Ady/Hip","Op/Ady","Hip/Ady"], answer: 1 },
+      { type: "choice", prompt: "Tangente es…", choices: ["Op/Ady","Ady/Op","Op/Hip","Hip/Op"], answer: 0 },
+      { type: "choice", prompt: "Seno compara…", choices: ["Opuesto e hipotenusa","Adyacente e hipotenusa","Ambos catetos","Hipotenusas"], answer: 0 },
+      { type: "choice", prompt: "Coseno compara…", choices: ["Opuesto e hipotenusa","Adyacente e hipotenusa","Catetos","Ángulo"], answer: 1 },
+      { type: "choice", prompt: "Tangente compara…", choices: ["Opuesto y adyacente","Adyacente e hipotenusa","Opuesto e hipotenusa","Catetos iguales"], answer: 0 },
+      { type: "choice", prompt: "Para usar razones, el ángulo debe ser…", choices: ["Recto","Agudo","Obtuso","Cualquiera"], answer: 1 },
+      { type: "choice", prompt: "¿Qué NO es una razón?", choices: ["Seno","Coseno","Tangente","Hipotenusa"], answer: 3 },
+      { type: "choice", prompt: "Si conoces dos lados, usas…", choices: ["Tales","Pitágoras","Promedio","Regla de tres"], answer: 1 },
+      { type: "choice", prompt: "Razones sirven para…", choices: ["Relacionar ángulos y lados","Calcular perímetros","Sumar fracciones","Clasificar"], answer: 0 },
+      { type: "choice", prompt: "Pitágoras halla…", choices: ["Lado faltante","Volumen","Probabilidad","Mediana"], answer: 0 },
+      { type: "choice", prompt: "Trigonometría relaciona…", choices: ["Ángulo con lados","Cuadrados siempre","Áreas","Perímetros"], answer: 0 },
+      { type: "builder", prompt: "Arma la ecuación de SENO", data: {op:3,ady:4,hip:5,angle:"A"}, blocks: ["sen","cos","tan","3","4","5","A"], solution: {f:"sen", a:"A", n:"3", d:"5"} },
+      { type: "builder", prompt: "Arma la ecuación de COSENO", data: {op:12,ady:5,hip:13,angle:"B"}, blocks: ["sen","cos","tan","12","5","13","B"], solution: {f:"cos", a:"B", n:"5", d:"13"} },
+      { type: "builder", prompt: "Arma la ecuación de TANGENTE", data: {op:8,ady:15,hip:17,angle:"X"}, blocks: ["sen","cos","tan","8","15","17","X"], solution: {f:"tan", a:"X", n:"8", d:"15"} },
+      { type: "builder", prompt: "SENO si Hip=10, Op=6", data: {op:6,ady:8,hip:10,angle:"C"}, blocks: ["sen","cos","tan","6","8","10","C"], solution: {f:"sen", a:"C", n:"6", d:"10"} },
+      { type: "builder", prompt: "COSENO para ángulo D", data: {op:7,ady:24,hip:25,angle:"D"}, blocks: ["sen","cos","tan","7","24","25","D"], solution: {f:"cos", a:"D", n:"24", d:"25"} },
+      { type: "builder", prompt: "TANGENTE ángulo E", data: {op:20,ady:21,hip:29,angle:"E"}, blocks: ["sen","cos","tan","20","21","29","E"], solution: {f:"tan", a:"E", n:"20", d:"21"} },
+      { type: "builder", prompt: "SENO ángulo F", data: {op:9,ady:40,hip:41,angle:"F"}, blocks: ["sen","cos","tan","9","40","41","F"], solution: {f:"sen", a:"F", n:"9", d:"41"} },
+      { type: "builder", prompt: "COSENO ángulo G", data: {op:15,ady:20,hip:25,angle:"G"}, blocks: ["sen","cos","tan","15","20","25","G"], solution: {f:"cos", a:"G", n:"20", d:"25"} },
+      { type: "builder", prompt: "TANGENTE ángulo H", data: {op:10,ady:24,hip:26,angle:"H"}, blocks: ["sen","cos","tan","10","24","26","H"], solution: {f:"tan", a:"H", n:"10", d:"24"} },
+      { type: "builder", prompt: "SENO ángulo I", data: {op:15,ady:8,hip:17,angle:"I"}, blocks: ["sen","cos","tan","15","8","17","I"], solution: {f:"sen", a:"I", n:"15", d:"17"} }
+    ];
 
-<div id="overlayGameOver" class="overlay">
-  <div class="big">💀 GAME OVER</div>
-  <div class="sub">Se agotaron tus 5 vidas.</div>
-</div>
-
-<div id="targetModalBack" class="modalBack">
-  <div class="modal">
-    <div class="modalTop">
-      <div>
-        <div style="font-weight:900;font-size:16px" id="modalTitle">Elegir objetivo</div>
-        <div class="mini" id="modalSub">—</div>
-      </div>
-      <button id="btnCloseModal">Cerrar</button>
-    </div>
-    <div class="modalList" id="targetList"></div>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import {
-    getDatabase, ref, set, update, get, onValue, runTransaction, remove
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyA6xPT1PT7Ce74zK8psf3uFSD5s7K-uMXI",
-    authDomain: "pirates-59cc3.firebaseapp.com",
-    databaseURL: "https://pirates-59cc3-default-rtdb.firebaseio.com",
-    projectId: "pirates-59cc3",
-    storageBucket: "pirates-59cc3.firebasestorage.app",
-    messagingSenderId: "717943731099",
-    appId: "1:717943731099:web:dda5b40c954b1aa7d8273e"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // ===== Tripulaciones (20) =====
-  const TEAM_NAMES = [
-    "Tripulación del Abismo Carmesí","Tripulación del Leviatán de Ébano","Tripulación de la Calavera Astral","Tripulación del Huracán Silente",
-    "Tripulación del Kraken Inmortal","Tripulación del Faro del Juicio","Tripulación de la Daga de Oro Negro","Tripulación de las Mareas Malditas",
-    "Tripulación del Ojo del Naufragio","Tripulación del Viento del Norte Sombrío","Tripulación de la Brújula Rota","Tripulación del Ancla de Titanio",
-    "Tripulación del Tridente Fantasma","Tripulación del Remolino del Fin","Tripulación de la Sombra del Horizonte","Tripulación de la Tormenta Esmeralda",
-    "Tripulación del Sable del Eclipse","Tripulación del Dragón Marino","Tripulación de la Bandera del Vacío","Tripulación del Tesoro Prohibido"
-  ];
-
-  // ===== Preguntas =====
-  const QUESTIONS = [
-    { img:"q01.jpg", text:"🌊 Mapa maldito: ¿Qué es un triángulo rectángulo?", opts:["Tiene un ángulo recto","Tiene todos los lados iguales","Tiene dos ángulos obtusos","No tiene ángulos"], correct:0 },
-    { img:"q02.jpg", text:"🧭 Mapa maldito: ¿Cómo se llama el lado más largo?", opts:["Cateto","Hipotenusa","Base","Altura"], correct:1 },
-    { img:"q03.jpg", text:"🧭 Puente de cuerdas: ¿Qué son los catetos?", opts:["Lados que forman el ángulo recto","Lado más largo","Lados curvos","Lados opuestos al ángulo recto"], correct:0 },
-    { img:"q04.jpg", text:"⛰️ Montaña: ¿En qué triángulo se usa Pitágoras?", opts:["En cualquier triángulo","Solo en rectángulos","Solo en equiláteros","Solo en isósceles"], correct:1 },
-    { img:"q05.jpg", text:"⛰️ Montaña: ¿Cuál es la fórmula de Pitágoras?", opts:["a+b=c","a²+b²=c²","a×b=c","a²-b²=c²"], correct:1 },
-    { img:"q06.jpg", text:"⛰️ Montaña: En Pitágoras, c representa…", opts:["Un cateto","La hipotenusa","Un ángulo","El área"], correct:1 },
-    { img:"q07.jpg", text:"🗼 Torre del vigía: ¿Qué son las razones trigonométricas?", opts:["Comparaciones entre lados de un triángulo rectángulo","Operaciones con potencias","Tipos de polígonos","Medidas de área"], correct:0 },
-    { img:"q08.jpg", text:"🗼 Torre del vigía: Razones básicas:", opts:["Seno, coseno, tangente","Área, perímetro, volumen","Suma, resta, producto","Mediana, moda, media"], correct:0 },
-    { img:"q09.jpg", text:"🗼 SOH: Seno es…", opts:["Opuesto/Hipotenusa","Adyacente/Hipotenusa","Opuesto/Adyacente","Hipotenusa/Opuesto"], correct:0 },
-    { img:"q10.jpg", text:"🗼 CAH: Coseno es…", opts:["Opuesto/Hipotenusa","Adyacente/Hipotenusa","Opuesto/Adyacente","Hipotenusa/Adyacente"], correct:1 },
-    { img:"q11.jpg", text:"🗼 TOA: Tangente es…", opts:["Opuesto/Adyacente","Adyacente/Opuesto","Opuesto/Hipotenusa","Hipotenusa/Opuesto"], correct:0 },
-    { img:"q12.jpg", text:"🏛️ Templo: El seno compara…", opts:["Cateto opuesto e hipotenusa","Cateto adyacente e hipotenusa","Ambos catetos","Dos hipotenusas"], correct:0 },
-    { img:"q13.jpg", text:"🏛️ Templo: El coseno compara…", opts:["Opuesto e hipotenusa","Adyacente e hipotenusa","Ambos catetos","Ángulo y área"], correct:1 },
-    { img:"q14.jpg", text:"🏛️ Templo: La tangente compara…", opts:["Opuesto y adyacente","Adyacente e hipotenusa","Opuesto e hipotenusa","Dos catetos iguales"], correct:0 },
-    { img:"q15.jpg", text:"🏛️ Templo: Para usar seno/cos/tan, el ángulo debe ser…", opts:["Recto","Agudo","Obtuso","Cualquiera, siempre"], correct:1 },
-    { img:"q16.jpg", text:"💎 Cofre: ¿Qué NO es una razón trigonométrica?", opts:["Seno","Coseno","Tangente","Hipotenusa"], correct:3 },
-    { img:"q17.jpg", text:"💎 Cofre: Si conoces dos lados de un triángulo rectángulo, usas…", opts:["Tales","Pitágoras","Promedio","Regla de tres"], correct:1 },
-    { img:"q18.jpg", text:"💎 Cofre: Razones trigonométricas sirven para…", opts:["Relacionar ángulos y lados","Calcular perímetros de círculos","Sumar fracciones","Clasificar números"], correct:0 },
-    { img:"q19.jpg", text:"🧠 Decisión: Pitágoras se usa para…", opts:["Hallar un lado faltante en triángulo rectángulo","Medir el volumen","Calcular probabilidades","Encontrar la mediana"], correct:0 },
-    { img:"q20.jpg", text:"🧠 Decisión final: Trigonometría se usa para…", opts:["Relacionar un ángulo con los lados","Sumar cuadrados de lados siempre","Calcular áreas de cualquier figura","Hallar el perímetro de un rectángulo"], correct:0 },
-  ];
-
-  // ===== Perks =====
-  const PERK_META = {
-    timeout:{label:"⛔ Timeout",emoji:"⛔",kind:"attack"},
-    skip:{label:"⏭️ Skip",emoji:"⏭️",kind:"self"},
-    anchor:{label:"⚓ Ancla",emoji:"⚓",kind:"self"},
-    double:{label:"🧪 Doble intento",emoji:"🧪",kind:"self"},
-    shield:{label:"🛡️ Escudo",emoji:"🛡️",kind:"self"}
-  };
-  const PERK_WEIGHTS = [["timeout",15],["skip",20],["anchor",20],["double",20],["shield",25]];
-
-  // ===== Config =====
-  const MAX_LIVES=5, TIME_LIMIT_MS=20000, MAX_POINTS=10, MIN_POINTS=0;
-  const TIMEOUT_MS=10000;
-
-  // ===== UI refs =====
-  const roomIdEl=document.getElementById("roomId");
-  const btnCheck=document.getElementById("btnCheck");
-  const btnJoin=document.getElementById("btnJoin");
-  const regMsg=document.getElementById("regMsg");
-  const membersInputs=Array.from(document.querySelectorAll("input.m"));
-
-  const roomPill=document.getElementById("roomPill");
-  const teamPill=document.getElementById("teamPill");
-  const statePill=document.getElementById("statePill");
-
-  const screenRegister=document.getElementById("screenRegister");
-  const screenLobby=document.getElementById("screenLobby");
-  const screenGame=document.getElementById("screenGame");
-
-  const lobbyMsg=document.getElementById("lobbyMsg");
-  const membersPill=document.getElementById("membersPill");
-  const teamNamePill=document.getElementById("teamNamePill");
-  const teamsLobbyEl=document.getElementById("teamsLobby");
-  const teamsSideEl=document.getElementById("teamsSide");
-
-  const overlayCountdown=document.getElementById("overlayCountdown");
-  const countNum=document.getElementById("countNum");
-
-  const overlayTimeout=document.getElementById("overlayTimeout");
-  const attackByTxt=document.getElementById("attackByTxt");
-  const btnShield=document.getElementById("btnShield");
-
-  const overlayGameOver=document.getElementById("overlayGameOver");
-  const heartsEl=document.getElementById("hearts");
-
-  const timerTxt=document.getElementById("timerTxt");
-  const pointsTxt=document.getElementById("pointsTxt");
-  const qNum=document.getElementById("qNum");
-  const mainImg=document.getElementById("mainImg");
-  const qText=document.getElementById("qText");
-  const answersRow=document.getElementById("answersRow");
-  const feedback=document.getElementById("feedback");
-
-  const perkBar=document.getElementById("perkBar");
-  const perkHint=document.getElementById("perkHint");
-
-  const targetModalBack=document.getElementById("targetModalBack");
-  const targetList=document.getElementById("targetList");
-  const modalTitle=document.getElementById("modalTitle");
-  const modalSub=document.getElementById("modalSub");
-  const btnCloseModal=document.getElementById("btnCloseModal");
-
-  // ===== Persisted =====
-  let roomId=localStorage.getItem("pirates_roomId")||"";
-  let teamId=localStorage.getItem("pirates_teamId")||"";
-  let teamName=localStorage.getItem("pirates_teamName")||"";
-  let members=JSON.parse(localStorage.getItem("pirates_members")||"[]");
-  roomIdEl.value=roomId;
-  membersPill.textContent=members.length?members.join(" / "):"—";
-  teamNamePill.textContent=teamName||"—";
-  setPills();
-
-  // ===== Runtime =====
-  let myTeam=null, teamsObjCache={}, roomCache={};
-  let qIndex=0, qStartedAt=0, qAnswered=false, usedPerkThisQuestion=false;
-  let currentEffectId=null, shieldWindowUntil=0;
-  let anchorUntil=0, anchorElapsedSnap=0, doubleTryArmed=false;
-  let pendingAttackPerk=null;
-
-  // ===== Randomization state =====
-  // qOrder: arreglo de índices (0..19) con orden aleatorio estable por equipo.
-  let qOrder = null;
-  // currentCorrectPos: posición (0..3) que es correcta DESPUÉS de mezclar respuestas
-  let currentCorrectPos = 0;
-
-  // ===== RNG helpers (seeded) =====
-  function hash32(str){
-    let h=2166136261>>>0;
-    for(let i=0;i<str.length;i++){
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h>>>0;
-  }
-  function mulberry32(a){
-    return function(){
-      let t = a += 0x6D2B79F5;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    const ui = {
+      screens: { entry: document.getElementById('entryScreen'), waiting: document.getElementById('waitingScreen'), hud: document.getElementById('hud'), podium: document.getElementById('podiumScreen') },
+      inputs: { room: document.getElementById('roomInput'), m1: document.getElementById('member1'), m2: document.getElementById('member2'), joinBtn: document.getElementById('joinBtn'), error: document.getElementById('joinError') },
+      hud: { 
+        stage: document.getElementById('stagePill'), life: document.getElementById('lifeText'), qText: document.getElementById('qText'), opts: document.getElementById('opts'), msg: document.getElementById('msg'), labels: document.getElementById('labelsContainer'), builder: document.getElementById('builder-area'), canvas: document.getElementById('triCanvas'), dropZone: document.getElementById('dropZone'), blockPool: document.getElementById('blockPool'), submitBuild: document.getElementById('btnSubmitBuild'),
+        slots: { func: document.getElementById('slotFunc'), angle: document.getElementById('slotAngle'), num: document.getElementById('slotNum'), den: document.getElementById('slotDen') }
+      },
+      perks: { btnCannon: document.getElementById('btnCannon'), bdgCannon: document.getElementById('bdgCannon'), btnShield: document.getElementById('btnShield'), bdgShield: document.getElementById('bdgShield'), btnParrot: document.getElementById('btnParrot'), bdgParrot: document.getElementById('bdgParrot'), btn5050: document.getElementById('btn5050'), bdg5050: document.getElementById('bdg5050'), btnHeal: document.getElementById('btnHeal'), bdgHeal: document.getElementById('bdgHeal'), btnWind: document.getElementById('btnWind'), bdgWind: document.getElementById('bdgWind') },
+      wait: { txt: document.getElementById('waitingText'), team: document.getElementById('teamNameDisplay') },
+      podium: { list: document.getElementById('podiumList'), btn: document.getElementById('backToLobbyBtn'), hint: document.getElementById('podiumHint') },
+      audio: { rain: document.getElementById('rainSound'), wind: document.getElementById('windSound') },
+      overlays: { start: document.getElementById('start-overlay'), startTimer: document.getElementById('start-timer'), kraken: document.getElementById('kraken-overlay'), frozen: document.getElementById('frozen-overlay'), incoming: document.getElementById('incoming-overlay'), incTimer: document.getElementById('inc-timer'), gameover: document.getElementById('gameover-overlay'), targeting: document.getElementById('targeting-overlay'), targets: document.getElementById('target-list'), kTimer: document.getElementById('kraken-timer'), fTimer: document.getElementById('frozen-timer'), btnCounter: document.getElementById('btn-counter-shield'), cancelTargetBtn: document.getElementById('cancelTargetBtn') }
     };
-  }
-  function seededShuffle(arr, seed){
-    const a = arr.slice();
-    const rnd = mulberry32(seed>>>0);
-    for(let i=a.length-1;i>0;i--){
-      const j = Math.floor(rnd()*(i+1));
-      [a[i],a[j]]=[a[j],a[i]];
-    }
-    return a;
-  }
 
-  function qOrderKey(){ return `pirates_qOrder_${roomId}_${teamId}`; }
+    let state = { 
+      roomCode: null, teamId: null, teamName: "", teamColor: 0xffffff, 
+      qIdx: 0, lives: 3, started: false, finished: false, isDead: false,
+      questions: [], rivalsData: [], 
+      frozen: false, shield: false, tailwind: false,
+      inventory: { cannon: 0, shield: 0, parrot: 0, cut: 0, heal: 0, wind: 0 },
+      selectedBlock: null, slotsFilled: { func:null, angle:null, num:null, den:null }, incomingAttack: false, draggedItem: null,
+      approved: false, roomStatus: 'lobby', countdownRunning: false, finishRank: null, podiumShown: false, podiumUnlockTimer: null
+    };
 
-  function ensureQuestionOrder(){
-    if(!roomId || !teamId) return;
-    const key = qOrderKey();
-    const saved = localStorage.getItem(key);
-    if(saved){
-      try{
-        const parsed = JSON.parse(saved);
-        if(Array.isArray(parsed) && parsed.length===QUESTIONS.length){
-          qOrder = parsed;
-          return;
+    // --- 3D ENGINE ---
+    const viewport = document.getElementById('viewport-3d');
+    const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x64748b, 0.025);
+    const camera = new THREE.PerspectiveCamera(65, viewport.clientWidth / viewport.clientHeight, 0.1, 300);
+    const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
+    renderer.setSize(viewport.clientWidth, viewport.clientHeight); viewport.appendChild(renderer.domElement);
+    const amb = new THREE.HemisphereLight(0xffffff, 0x475569, 0.8); scene.add(amb);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.0); sun.position.set(20, 50, -30); scene.add(sun);
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(400, 1200, 80, 200), new THREE.MeshPhongMaterial({ color: 0x006994, emissive: 0x001e33, specular: 0x00a8f3, shininess: 80, flatShading: true }));
+    water.rotation.x = -Math.PI/2; water.position.z = -400; scene.add(water);
+    const rainCount = 12000; const rainGeo = new THREE.BufferGeometry(); const rainPos = new Float32Array(rainCount * 3);
+    for(let i=0; i<rainCount*3; i+=3) { rainPos[i] = Math.random()*400-200; rainPos[i+1] = Math.random()*400-100; rainPos[i+2] = Math.random()*400-300; }
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+    const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: 0xa3b8e0, size: 0.4, transparent: true, opacity: 0.5 }));
+    scene.add(rain);
+
+    function generateWorld() {
+      const worldGroup = new THREE.Group();
+      for(let z=10; z > -400; z -= 15) {
+        if(Math.random() > 0.4) {
+           const xPos = (Math.random() > 0.5 ? 1 : -1) * (18 + Math.random() * 20);
+           if(Math.random() > 0.5) {
+             const island = new THREE.Group();
+             const base = new THREE.Mesh(new THREE.SphereGeometry(8, 16, 8), new THREE.MeshLambertMaterial({color: 0x388e3c})); base.scale.y = 0.3; base.position.y = -1; 
+             const rock = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 5), new THREE.MeshLambertMaterial({color: 0x78909c})); rock.position.y = 2; 
+             island.add(base); island.add(rock); island.position.set(xPos, 0, z); worldGroup.add(island);
+           } else {
+             const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3), new THREE.MeshLambertMaterial({color: 0x546e7a})); rock.position.set(xPos, 0, z); worldGroup.add(rock);
+           }
+           if(Math.random() > 0.8) {
+              const chest = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 0.6), new THREE.MeshStandardMaterial({color: 0xffb300, roughness: 0.4})); chest.position.set(xPos*0.5, 0.4, z+5); worldGroup.add(chest);
+           }
         }
-      }catch{}
+      }
+      scene.add(worldGroup);
     }
-    // generar nuevo orden estable
-    const base = Array.from({length:QUESTIONS.length},(_,i)=>i);
-    const seed = hash32(`${roomId}|${teamId}|QUESTIONS`);
-    qOrder = seededShuffle(base, seed);
-    localStorage.setItem(key, JSON.stringify(qOrder));
-  }
+    generateWorld();
 
-  // ===== UI helpers =====
-  function show(el){ screenRegister.classList.add("hidden");screenLobby.classList.add("hidden");screenGame.classList.add("hidden"); el.classList.remove("hidden"); }
-  function setPills(){ roomPill.textContent=roomId||"—"; teamPill.textContent=teamName||"—"; }
-  function clampLives(v){ const n=Number(v); if(isNaN(n)) return MAX_LIVES; return Math.max(0, Math.min(MAX_LIVES, n)); }
-  function setHearts(lives){
-    const L=clampLives(lives);
-    heartsEl.innerHTML="";
-    for(let i=0;i<MAX_LIVES;i++){
-      const s=document.createElement("span");
-      s.className="heart"+(i<L?"":" off");
-      s.textContent="❤️";
-      heartsEl.appendChild(s);
+    const krakenGroup = new THREE.Group();
+    const tentacleMat = new THREE.MeshPhongMaterial({color: 0x7e57c2, shininess: 100});
+    for(let i=0; i<4; i++) {
+       const t = new THREE.Mesh(new THREE.ConeGeometry(0.6, 12, 8), tentacleMat);
+       t.position.set((Math.random()-0.5)*15, -6, (Math.random()-0.5)*15); t.rotation.z = (Math.random()-0.5); krakenGroup.add(t);
     }
-  }
-  function normalizeMembers(){ return membersInputs.map(i=>i.value.trim()).filter(Boolean).slice(0,4); }
-  function teamPath(path){ return ref(db, `rooms/${roomId}/teams/${teamId}/${path}`); }
-  function effectsPath(path){ return ref(db, `rooms/${roomId}/effects/${teamId}/${path}`); }
-  function setAnswerButtonsEnabled(enabled){ Array.from(answersRow.children).forEach(btn=>btn.disabled=!enabled); }
-  function setFeedback(msg, good=null){
-    feedback.textContent=msg;
-    feedback.style.color = good===true ? "#bfffd3" : good===false ? "#ffd0d0" : "var(--muted)";
-  }
-  function formatMs(ms){ return `${Math.max(0, Math.ceil(ms/1000))}s`; }
+    scene.add(krakenGroup); krakenGroup.visible = false;
 
-  function computePointsNow(){
-    const now=Date.now();
-    const elapsed=Math.max(0, now-qStartedAt);
-    const effElapsed=(anchorUntil>now)?anchorElapsedSnap:elapsed;
-    const t=Math.min(1, effElapsed/TIME_LIMIT_MS);
-    const pts=Math.ceil(MAX_POINTS - t*(MAX_POINTS-MIN_POINTS));
-    return Math.max(MIN_POINTS, Math.min(MAX_POINTS, pts));
-  }
+    // --- EXPLOSION ---
+    const particlesGeo = new THREE.BufferGeometry(); const particlesCnt = 200; const pPos = new Float32Array(particlesCnt * 3); const pVel = [];
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const particlesMat = new THREE.PointsMaterial({color: 0xffaa00, size: 2.0, transparent:true});
+    const explosionSystem = new THREE.Points(particlesGeo, particlesMat); explosionSystem.visible = false; scene.add(explosionSystem);
+    let explosionActive = false;
 
-  function totalPerks(perksObj){ const p=perksObj||{}; return Object.values(p).reduce((a,b)=>a+(Number(b)||0),0); }
-  function weightedPick(){
-    const total=PERK_WEIGHTS.reduce((s,[,w])=>s+w,0);
-    let r=Math.random()*total;
-    for(const [k,w] of PERK_WEIGHTS){ r-=w; if(r<=0) return k; }
-    return PERK_WEIGHTS[0][0];
-  }
-  async function awardRandomPerk(){
-    const perks=(myTeam?.perks)||{};
-    if(totalPerks(perks)>=5){ perkHint.textContent="Inventario lleno (5). No recibiste carta."; return; }
-    const k=weightedPick();
-    await runTransaction(teamPath("perks"),(cur)=>{ const p=cur||{}; p[k]=(Number(p[k])||0)+1; return p; });
-    perkHint.textContent=`Carta obtenida: ${PERK_META[k].label}`;
-  }
-  async function consumePerk(key,n=1){
-    await runTransaction(teamPath("perks"),(cur)=>{
-      const p=cur||{}; const v=Number(p[key]||0);
-      if(v<=0) return;
-      p[key]=v-n; if(p[key]<=0) delete p[key];
-      return p;
-    });
-  }
+    function triggerExplosion(pos) {
+       explosionSystem.position.copy(pos); explosionSystem.position.y += 2; explosionSystem.visible = true; explosionActive = true;
+       for(let i=0; i<particlesCnt; i++) { pPos[i*3] = 0; pPos[i*3+1] = 0; pPos[i*3+2] = 0; pVel[i] = new THREE.Vector3((Math.random()-.5)*3, (Math.random()-.5)*3, (Math.random()-.5)*3); }
+       setTimeout(() => { explosionActive = false; explosionSystem.visible = false; }, 1000);
+    }
 
-  // ===== Room join =====
-  async function checkRoom(){
-    roomId=roomIdEl.value.trim();
-    if(!roomId) throw new Error("Escribe un Room ID.");
-    setPills();
-    const snap=await get(ref(db, `rooms/${roomId}`));
-    if(!snap.exists()) return {ok:false,msg:"⏳ Esperando al host: la sala aún no existe."};
-    const room=snap.val()||{};
-    if(room.allowJoin!==true) return {ok:false,msg:"⏳ Esperando al host: conexiones cerradas."};
-    if(room.gameState && room.gameState!=="lobby") return {ok:false,msg:`⛔ La partida ya está en estado: ${room.gameState}.`};
-    return {ok:true,msg:"✅ Sala lista. Presiona “Listo” para unirte."};
-  }
+    function createBoat(colorHex, isRival = false) {
+      const g = new THREE.Group(); const wood = new THREE.MeshLambertMaterial({ color: 0x3e2723 }); const sailColor = colorHex; 
+      const hull = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.6, 2.8), wood); hull.position.y = 0.3; g.add(hull);
+      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.0), wood); cabin.position.set(0, 0.8, 0.8); g.add(cabin);
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.5), new THREE.MeshLambertMaterial({color:0x5d4037})); mast.position.set(0, 2, 0); g.add(mast);
+      const sailMat = new THREE.MeshStandardMaterial({color: sailColor, emissive: sailColor, emissiveIntensity: 0.6, side:THREE.DoubleSide});
+      const sail = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.0), sailMat); sail.position.set(0, 2.2, 0.2); sail.rotation.x=0.1; g.add(sail);
+      const light = new THREE.PointLight(sailColor, 3, 15); light.position.set(0, 2, 0); g.add(light);
+      const shieldGeo = new THREE.SphereGeometry(2.5, 16, 16);
+      const shieldMat = new THREE.MeshPhongMaterial({color: 0x00ffff, transparent: true, opacity: 0.3, side: THREE.DoubleSide});
+      const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat); shieldMesh.name = "shieldMesh"; shieldMesh.visible = false; g.add(shieldMesh);
+      return g;
+    }
 
-  async function ensurePoolKeys(){
-    const poolBase=ref(db, `rooms/${roomId}/teamNamePool`);
-    const poolSnap=await get(poolBase);
-    const pool=poolSnap.val()||{};
-    const missing={};
-    TEAM_NAMES.forEach(n=>{
-      const key=n.replaceAll(" ","_").toLowerCase();
-      if(pool[key]===undefined || pool[key]===null) missing[key]=true;
-    });
-    if(Object.keys(missing).length) await update(poolBase, missing);
-  }
+    let myBoat = createBoat(0xffffff); scene.add(myBoat);
+    const rivals = []; const rivalLabels = [];
+    for(let i=0; i<4; i++) {
+       const boat = createBoat(0x999999, true); boat.position.y = -50; scene.add(boat); rivals.push(boat);
+       const lbl = document.createElement('div'); lbl.className = 'boat-label label-rival'; ui.hud.labels.appendChild(lbl); rivalLabels.push(lbl);
+    }
+    const labelMe = document.createElement('div'); labelMe.className = 'boat-label label-me'; ui.hud.labels.appendChild(labelMe);
 
-  async function reserveTeamName(){
-    await ensurePoolKeys();
-    const poolBase=ref(db, `rooms/${roomId}/teamNamePool`);
-    const freshSnap=await get(poolBase);
-    const fresh=freshSnap.val()||{};
-    let candidates=TEAM_NAMES.map(n=>n.replaceAll(" ","_").toLowerCase())
-      .filter(k=>fresh[k]===true || fresh[k]===undefined || fresh[k]===null);
-    if(candidates.length===0) throw new Error("No hay nombres disponibles (se agotaron los 20).");
+    // --- HELPER FUNCTIONS ---
+    function toSafeLives(v){ const n = Number(v); return !Number.isFinite(n) ? 3 : Math.max(0, Math.floor(n)); }
+    function toSafeProgress(v){ const n = Number(v); return !Number.isFinite(n) ? 0 : Math.max(0, Math.min(TOTAL_QUESTIONS, Math.floor(n))); }
+    
+    function applyMyBoatAppearance(){
+      scene.remove(myBoat);
+      myBoat = createBoat(state.teamColor);
+      scene.add(myBoat);
+      const sMesh = myBoat.getObjectByName("shieldMesh");
+      if(sMesh) sMesh.visible = !!state.shield;
+    }
 
-    for(let tries=0; tries<20; tries++){
-      const pickKey=candidates[Math.floor(Math.random()*candidates.length)];
-      const pickName=TEAM_NAMES.find(n=>n.replaceAll(" ","_").toLowerCase()===pickKey)||pickKey;
-      const pickRef=ref(db, `rooms/${roomId}/teamNamePool/${pickKey}`);
-      const tx=await runTransaction(pickRef,(cur)=>{
-        if(cur===true || cur===null) return false;
-        return;
+    async function tryResumeSession(){
+      const savedRoom = localStorage.getItem("pirates_room");
+      const savedTeamId = localStorage.getItem("pirates_team");
+      if(!savedRoom || !savedTeamId) return false;
+      ui.inputs.room.value = savedRoom;
+      const teamRef = ref(db, `rooms/${savedRoom}/teams/${savedTeamId}`);
+      const teamSnap = await get(teamRef);
+      if(!teamSnap.exists()){ localStorage.removeItem("pirates_team"); return false; }
+      
+      const t = teamSnap.val();
+      state.roomCode = savedRoom; state.teamId = savedTeamId;
+      state.teamName = t.teamName || ""; state.teamColor = (typeof t.color === "number") ? t.color : 0xffffff;
+      state.lives = toSafeLives(t.lives ?? 3); state.qIdx = toSafeProgress(t.progress ?? 0);
+      state.approved = !!t.approved; state.finishRank = (t.finishRank ? Number(t.finishRank) : null);
+      
+      applyMyBoatAppearance();
+      ui.wait.team.textContent = state.teamName;
+      ui.wait.team.style.color = '#' + state.teamColor.toString(16).padStart(6,'0');
+      labelMe.textContent = state.teamName;
+      labelMe.style.borderColor = '#' + state.teamColor.toString(16).padStart(6,'0');
+      
+      switchScreen('waiting');
+      startListener();
+      return true;
+    }
+
+    // --- LOGIC ---
+    let amIApproved = false; 
+    let detachStarted = false;
+
+    await signInAnonymously(auth);
+    const resumed = await tryResumeSession();
+    if(!resumed){
+      const savedRoom = localStorage.getItem("pirates_room");
+      if(savedRoom) ui.inputs.room.value = savedRoom;
+    }
+
+    ui.inputs.joinBtn.onclick = async () => {
+      ui.inputs.error.textContent = "";
+      const code = ui.inputs.room.value.trim().toUpperCase();
+      const m1 = ui.inputs.m1.value.trim();
+      const m2 = ui.inputs.m2.value.trim();
+      if(!code || !m1) { ui.inputs.error.textContent = "Faltan datos"; return; }
+      ui.inputs.joinBtn.disabled = true;
+
+      try {
+        if(ui.audio.rain.paused) { ui.audio.rain.volume = 0.3; ui.audio.rain.play(); }
+        if(ui.audio.wind.paused) { ui.audio.wind.volume = 0.1; ui.audio.wind.play(); }
+      } catch(e) {}
+
+      try {
+        const savedRoom = localStorage.getItem("pirates_room");
+        const savedTeamId = localStorage.getItem("pirates_team");
+        if(savedRoom === code && savedTeamId){
+          const ok = await tryResumeSession();
+          if(ok) return;
+        }
+
+        const rRef = ref(db, `rooms/${code}`);
+        const snap = await get(rRef);
+        if(!snap.exists()) throw new Error("Sala no existe");
+
+        const idxRef = ref(db, `rooms/${code}/nextTeamIndex`);
+        const tx = await runTransaction(idxRef, (c) => (c||0)+1);
+        const idx = (tx.snapshot.val()||1)-1;
+        const teamInfo = PIRATE_DATA[idx % PIRATE_DATA.length];
+        
+        const tRef = push(ref(db, `rooms/${code}/teams`));
+        await set(tRef, {
+          teamName: teamInfo.name, color: teamInfo.color, members: [m1, m2 || ""], approved: false,
+          status: 'pending', progress: 0, lives: 3, joinedAt: serverTimestamp()
+        });
+
+        state.roomCode = code; state.teamId = tRef.key; state.teamName = teamInfo.name; state.teamColor = teamInfo.color;
+        state.lives = 3; state.qIdx = 0; state.approved = false; state.finishRank = null;
+        state.started = false; state.finished = false; state.isDead = false; state.podiumShown = false; state.shield = false;
+
+        localStorage.setItem("pirates_room", code); localStorage.setItem("pirates_team", state.teamId);
+        applyMyBoatAppearance();
+        labelMe.textContent = teamInfo.name; labelMe.style.borderColor = '#' + teamInfo.color.toString(16).padStart(6,'0');
+        ui.wait.team.textContent = teamInfo.name; ui.wait.team.style.color = '#' + teamInfo.color.toString(16).padStart(6,'0');
+        
+        switchScreen('waiting');
+        startListener();
+      } catch(e) { ui.inputs.error.textContent = e?.message || String(e); ui.inputs.joinBtn.disabled = false; }
+    };
+
+    function startListener() {
+      if(detachStarted) return;
+      detachStarted = true;
+
+      onValue(ref(db, `rooms/${state.roomCode}/status`), snap => {
+         state.roomStatus = snap.val() || 'lobby';
+         if(state.roomStatus === 'lobby'){
+           ui.wait.txt.textContent = state.approved ? "¡Aprobado! Esperando inicio..." : "Esperando aprobación del capitán...";
+         }
+         // Si el juego corre, estoy aprobado, y NO he iniciado...
+         if(state.roomStatus === 'running' && amIApproved && !state.started){
+             // Verificamos si ya tenía progreso para saltar la cuenta regresiva
+             const wasPlaying = (state.qIdx > 0); 
+             if(wasPlaying) startGame();
+             else startCountdownThenGame();
+         }
       });
-      if(tx.committed) return pickName;
-      candidates=candidates.filter(k=>k!==pickKey);
-      if(candidates.length===0) break;
-    }
-    throw new Error("No se pudo reservar nombre. Intenta de nuevo.");
-  }
 
-  // ===== Game render (RANDOM) =====
-  function getQuestionByIndex(idx){
-    ensureQuestionOrder();
-    const realIndex = qOrder ? qOrder[idx] : idx;
-    return { q: QUESTIONS[realIndex], realIndex };
-  }
-
-  function renderQuestion(){
-    ensureQuestionOrder();
-
-    const { q, realIndex } = getQuestionByIndex(qIndex);
-
-    qAnswered=false; usedPerkThisQuestion=false; doubleTryArmed=false;
-    qStartedAt=Date.now();
-
-    qNum.textContent=String(qIndex+1);
-    mainImg.src=q.img;
-    qText.innerHTML=`<b>${q.text}</b>`;
-
-    // === Respuestas aleatorias pero estables por equipo/pregunta ===
-    // Creamos un orden aleatorio de opciones [0,1,2,3] usando seed que depende de:
-    // roomId + teamId + qIndex + realIndex
-    const optIdx = [0,1,2,3];
-    const seed = hash32(`${roomId}|${teamId}|ANS|${qIndex}|${realIndex}`);
-    const shuffledOptIdx = seededShuffle(optIdx, seed);
-
-    // nueva posición correcta
-    currentCorrectPos = shuffledOptIdx.indexOf(q.correct);
-
-    answersRow.innerHTML="";
-    shuffledOptIdx.forEach((origOptIndex, pos)=>{
-      const b=document.createElement("button");
-      b.textContent=q.opts[origOptIndex];
-      b.onclick=()=>onAnswer(pos); // ahora se compara con currentCorrectPos
-      answersRow.appendChild(b);
-    });
-
-    setFeedback("Responde rápido para ganar más puntos.");
-    renderPerkBar();
-  }
-
-  function showGameOver(){
-    overlayGameOver.classList.add("show");
-    setAnswerButtonsEnabled(false);
-    usedPerkThisQuestion=true;
-    renderPerkBar();
-  }
-
-  async function onAnswer(clickedPos){
-    if(qAnswered) return;
-
-    if(clampLives(myTeam?.lives ?? MAX_LIVES) <= 0){
-      showGameOver();
-      return;
-    }
-
-    qAnswered=true;
-    setAnswerButtonsEnabled(false);
-
-    const correct = (clickedPos === currentCorrectPos);
-    const pts=computePointsNow();
-
-    if(correct){
-      await runTransaction(teamPath("score"), (cur)=>(Number(cur)||0)+pts);
-      setFeedback(`✅ Correcto: +${pts} pts`, true);
-
-      await awardRandomPerk();
-
-      const next=qIndex+1;
-      await set(teamPath("question"), next);
-
-      setTimeout(()=>{
-        if(next>=QUESTIONS.length){
-          setFeedback("🎉 ¡Fin! Espera instrucciones del host.", true);
-          return;
+      onValue(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), snap => {
+        if(!snap.exists()) { 
+           localStorage.removeItem("pirates_team"); state.teamId=null; state.started=false; state.finished=false; state.approved=false;
+           switchScreen('entry'); ui.inputs.joinBtn.disabled=false; ui.inputs.error.textContent="Tu equipo ya no existe. Vuelve a entrar."; return; 
         }
-        qIndex=next;
-        renderQuestion();
-      }, 350);
+        const tData = snap.val(); 
+        state.approved = !!tData.approved;
+        amIApproved = state.approved;
+        
+        state.lives = toSafeLives(tData.lives ?? state.lives);
+        state.qIdx = toSafeProgress(tData.progress ?? state.qIdx);
+        ui.hud.life.textContent = state.lives;
+        ui.hud.stage.textContent = `${Math.min(state.qIdx, TOTAL_QUESTIONS)}/${TOTAL_QUESTIONS}`;
 
-      return;
+        if(tData.finishRank) state.finishRank = Number(tData.finishRank);
+
+        if(!state.approved) ui.wait.txt.textContent = "Esperando aprobación del capitán...";
+        else if(state.roomStatus === 'lobby') ui.wait.txt.textContent = "¡Aprobado! Esperando inicio...";
+
+        if(state.approved && state.roomStatus === 'running' && !state.started){
+            const wasPlaying = (tData.status === 'playing' || state.qIdx > 0);
+            if(wasPlaying) startGame();
+            else startCountdownThenGame();
+        }
+        
+        const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = !!state.shield;
+
+        if (tData.effects) {
+           const now = Date.now();
+           if (tData.effects.incomingAttack) {
+              if (state.shield || state.inventory.shield > 0) {
+                 if (state.shield) {
+                    update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null);
+                    ui.hud.msg.textContent = "¡ESCUDO AUTOMÁTICO!";
+                    state.shield = false; 
+                    if(sMesh) sMesh.visible = false;
+                    updateUI();
+                 } else if (!state.incomingAttack) {
+                    state.incomingAttack = true; showIncomingAlert(); 
+                 }
+              } 
+              else { 
+                 triggerExplosion(myBoat.position);
+                 update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null });
+              }
+           }
+           
+           // --- KRAKEN MANUAL CHECK ---
+           if (tData.effects.krakenHit && (now - tData.effects.krakenHit < 11000) && !state.frozen) {
+               const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
+               if(remaining > 0) triggerAttack('kraken', remaining);
+           }
+           // --- STANDARD FREEZE ---
+           else if (Number(tData.effects.frozenUntil || 0) > now && !state.frozen) {
+              const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
+              if(remaining > 0) triggerAttack('freeze', remaining);
+           }
+        }
+      });
+
+      onValue(ref(db, `rooms/${state.roomCode}/teams`), snap => {
+        const rData = snap.val();
+        if(!rData) return;
+        const allTeams = Object.entries(rData).map(([k,v]) => ({id:k, ...v})).sort((a,b)=>(Number(b.progress||0)-Number(a.progress||0)));
+        state.rivalsData = allTeams;
+        const myIdx = allTeams.findIndex(t => t.id === state.teamId);
+        
+        const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = !!state.shield;
+
+        // Auto Random Kraken
+        if(state.started && !state.finished && !state.isDead && !state.frozen && myIdx < 3 && !state.shield && !state.incomingAttack) { if(Math.random() < 0.003) triggerAttack('kraken'); }
+        update3D(state.qIdx, allTeams, myIdx); 
+        if(state.roomStatus === 'finished') showPodiumByRank(allTeams);
+      });
     }
 
-    if(doubleTryArmed){
-      doubleTryArmed=false;
-      setFeedback("⚠️ Incorrecto, pero 🧪 Doble intento te salvó (sin perder vida).", false);
-      qAnswered=false;
-      setAnswerButtonsEnabled(true);
-      return;
+    function showIncomingAlert() {
+       ui.overlays.incoming.style.display = 'flex'; let t = 3; ui.overlays.incTimer.textContent = t;
+       const timer = setInterval(() => {
+          t--; ui.overlays.incTimer.textContent = t;
+          if (t <= 0 || !state.incomingAttack) { clearInterval(timer); if (state.incomingAttack) { ui.overlays.incoming.style.display = 'none'; state.incomingAttack = false; triggerExplosion(myBoat.position); update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null }); } }
+       }, 1000);
+       ui.overlays.btnCounter.onclick = () => { 
+          if (state.inventory.shield > 0) { 
+             state.inventory.shield--; updateUI(); state.incomingAttack = false; 
+             ui.overlays.incoming.style.display = 'none'; ui.hud.msg.textContent = "¡ESCUDO DEFENDIÓ!"; ui.hud.msg.style.color = "#34d399"; 
+             update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null); 
+          } 
+       };
     }
 
-    const tx = await runTransaction(teamPath("lives"), (cur)=>{
-      const v=Number(cur);
-      const base=isNaN(v)?MAX_LIVES:v;
-      return Math.max(0, Math.min(MAX_LIVES, base-1));
-    });
-
-    const newLives=clampLives(tx?.snapshot?.val());
-    setHearts(newLives);
-
-    if(newLives<=0){
-      setFeedback("💀 Te quedaste sin vidas.", false);
-      showGameOver();
-      return;
+    function triggerAttack(type, duration) {
+      if(state.isDead || state.finished) return; state.frozen = true; let overlay, timerEl, dur = duration || ((type === 'freeze') ? 10 : 5);
+      if(type === 'kraken') { overlay = ui.overlays.kraken; timerEl = ui.overlays.kTimer; krakenGroup.visible = true; krakenGroup.position.set(0, 0, myBoat.position.z - 8); } else { overlay = ui.overlays.frozen; timerEl = ui.overlays.fTimer; }
+      overlay.style.display = 'flex'; timerEl.textContent = dur;
+      const t = setInterval(() => { dur--; timerEl.textContent = dur; if(dur <= 0) { clearInterval(t); overlay.style.display = 'none'; state.frozen = false; if(type === 'kraken') krakenGroup.visible = false; if(type === 'freeze') update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: 0, immuneUntil: Date.now() + 20000 }); } }, 1000);
     }
 
-    setFeedback("❌ Incorrecto: -1 vida", false);
-    qAnswered=false;
-    setAnswerButtonsEnabled(true);
-    renderPerkBar();
-  }
-
-  // ===== Perks =====
-  function renderPerkBar(){
-    const perks=myTeam?.perks||{};
-    perkBar.innerHTML="";
-
-    function addBtn(key,count){
-      const meta=PERK_META[key];
-      const btn=document.createElement("button");
-      btn.className="perkBtn";
-      btn.innerHTML=`${meta.emoji} ${meta.label} <small>×${count}</small>`;
-      btn.disabled=(count<=0) || usedPerkThisQuestion || overlayTimeout.classList.contains("show") || overlayGameOver.classList.contains("show");
-
-      btn.onclick=async ()=>{
-        if(btn.disabled) return;
-
-        // ⏭️ Skip: -1 vida, +0 pts, avanza
-        if(key==="skip"){
-          const curLives = clampLives(myTeam?.lives ?? MAX_LIVES);
-          if(curLives<=0){ showGameOver(); return; }
-
-          usedPerkThisQuestion=true;
-          await consumePerk("skip",1);
-
-          const tx = await runTransaction(teamPath("lives"), (cur)=>{
-            const v=Number(cur);
-            const base=isNaN(v)?MAX_LIVES:v;
-            return Math.max(0, Math.min(MAX_LIVES, base-1));
-          });
-          const newLives=clampLives(tx?.snapshot?.val());
-          setHearts(newLives);
-
-          if(newLives<=0){
-            setFeedback("⏭️ Skip usado… pero te quedaste sin vidas. 💀", false);
-            showGameOver();
-            return;
-          }
-
-          const next=qIndex+1;
-          await set(teamPath("question"), next);
-          setFeedback("⏭️ Skip: +0 pts y -1 vida.", false);
-
-          setTimeout(()=>{
-            if(next>=QUESTIONS.length){
-              setFeedback("🎉 ¡Fin! Espera instrucciones del host.", true);
-              return;
-            }
-            qIndex=next;
-            renderQuestion();
-          }, 350);
-
-          renderPerkBar();
-          return;
-        }
-
-        if(key==="shield"){
-          perkHint.textContent="🛡️ El Escudo se usa cuando te atacan (en el overlay).";
-          return;
-        }
-
-        if(key==="anchor"){
-          usedPerkThisQuestion=true;
-          await consumePerk("anchor",1);
-          const now=Date.now();
-          anchorElapsedSnap=Math.max(0, now-qStartedAt);
-          anchorUntil=now+5000;
-          perkHint.textContent="⚓ Ancla activada (5s sin bajar puntos).";
-          renderPerkBar();
-          return;
-        }
-
-        if(key==="double"){
-          usedPerkThisQuestion=true;
-          await consumePerk("double",1);
-          doubleTryArmed=true;
-          perkHint.textContent="🧪 Doble intento activado (1 error sin perder vida).";
-          renderPerkBar();
-          return;
-        }
-
-        // Ataque: Timeout
-        pendingAttackPerk=key;
-        openTargetModal(key);
-      };
-
-      perkBar.appendChild(btn);
+    async function startCountdownThenGame(){
+       if(state.countdownRunning || state.started) return;
+       state.countdownRunning = true;
+       ui.overlays.start.style.display = 'flex'; let t = 5; ui.overlays.startTimer.textContent = String(t);
+       const timer = setInterval(() => { t--; ui.overlays.startTimer.textContent = String(t); if(t <= 0){ clearInterval(timer); ui.overlays.start.style.display = 'none'; state.countdownRunning = false; if(!state.started) startGame(); } }, 1000);
     }
 
-    const order=["timeout","skip","anchor","double","shield"];
-    for(const k of order){
-      const c=Number(perks[k]||0);
-      if(c>0) addBtn(k,c);
-      else {
-        const meta=PERK_META[k];
-        const btn=document.createElement("button");
-        btn.className="perkBtn";
-        btn.disabled=true;
-        btn.innerHTML=`${meta.emoji} ${meta.label} <small>×0</small>`;
-        perkBar.appendChild(btn);
+    function startGame() {
+      state.started = true;
+      state.questions = shuffle([...QUESTIONS_DB]).map(q => { if(q.type === 'choice') return { ...q, choices: q.choices.map((txt,i)=>({txt,i})).sort(()=>Math.random()-.5), correctOriginal: q.answer }; else return { ...q, blocks: shuffle(q.blocks) }; });
+      state.qIdx = toSafeProgress(state.qIdx);
+      switchScreen('hud'); renderQuestion();
+      update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status: 'playing', progress: state.qIdx, lives: toSafeLives(state.lives) });
+    }
+
+    function renderQuestion() {
+      if(state.qIdx >= state.questions.length) { 
+         state.finished = true;
+         update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status:'finished', progress: TOTAL_QUESTIONS });
+         const medal = state.finishRank ? medalForRank(state.finishRank) : "";
+         ui.hud.qText.textContent = state.finishRank ? `¡META ALCANZADA! Tu lugar: #${state.finishRank} ${medal}` : "¡META ALCANZADA! Esperando tu lugar...";
+         ui.hud.opts.innerHTML = ""; ui.hud.builder.style.display = 'none'; updateUI(); return; 
       }
-    }
-  }
-
-  function openTargetModal(perkKey){
-    if(perkKey!=="timeout") return;
-
-    modalTitle.textContent=`Usar ${PERK_META[perkKey].label}`;
-    modalSub.textContent="Elige a qué equipo se lo aplicas.";
-    targetList.innerHTML="";
-
-    const entries=Object.entries(teamsObjCache||{}).map(([id,t])=>({id,...t}));
-    const targets=entries.filter(t=>t.id!==teamId).sort((a,b)=>(b.score||0)-(a.score||0));
-    if(targets.length===0) modalSub.textContent="No hay otros equipos conectados.";
-
-    for(const t of targets){
-      const div=document.createElement("div");
-      div.className="targetCard";
-      div.innerHTML=`
-        <div class="tname">${t.teamName||t.id} <span class="mini">· Score ${t.score??0}</span></div>
-        <div class="tmembers">${(t.members||[]).join(" / ")}</div>`;
-      div.onclick=()=>selectTarget(t.id);
-      targetList.appendChild(div);
-    }
-    targetModalBack.classList.add("show");
-  }
-  function closeTargetModal(){ targetModalBack.classList.remove("show"); pendingAttackPerk=null; }
-  btnCloseModal.onclick=closeTargetModal;
-  targetModalBack.addEventListener("click",(e)=>{ if(e.target===targetModalBack) closeTargetModal(); });
-
-  async function selectTarget(targetId){
-    const key=pendingAttackPerk;
-    if(key!=="timeout") return;
-
-    usedPerkThisQuestion=true;
-    await consumePerk("timeout",1);
-
-    const fxId="fx_"+Math.random().toString(36).slice(2,10);
-    const now=Date.now();
-    const payload={ id:fxId, by:teamId, byName:teamName, startedAt:now, cancelled:false, type:"timeout_block", durationMs:TIMEOUT_MS };
-
-    await set(ref(db, `rooms/${roomId}/effects/${targetId}/active`), payload);
-    perkHint.textContent=`⛔ Timeout enviado a ${teamsObjCache?.[targetId]?.teamName||targetId} (${Math.ceil(TIMEOUT_MS/1000)}s).`;
-    renderPerkBar();
-    closeTargetModal();
-  }
-
-  // ===== Timeout overlay =====
-  function showTimeoutOverlay(byName){
-    attackByTxt.textContent=`Te atacó: ${byName||"otro equipo"}`;
-    overlayTimeout.classList.add("show");
-    shieldWindowUntil=Date.now()+2000;
-
-    const shieldCount=Number(myTeam?.perks?.shield||0);
-    if(shieldCount>0){ btnShield.classList.remove("hidden"); btnShield.disabled=false; }
-    else { btnShield.classList.add("hidden"); }
-
-    setAnswerButtonsEnabled(false);
-  }
-  function hideTimeoutOverlay(){
-    overlayTimeout.classList.remove("show");
-    btnShield.classList.add("hidden");
-    if(!qAnswered) setAnswerButtonsEnabled(true);
-  }
-  async function clearActiveEffect(){ try{ await remove(effectsPath("active")); }catch{} currentEffectId=null; }
-
-  btnShield.onclick=async ()=>{
-    if(Date.now()>shieldWindowUntil) return;
-    const shieldCount=Number(myTeam?.perks?.shield||0);
-    if(shieldCount<=0) return;
-
-    await consumePerk("shield",1);
-    await update(effectsPath("active"), {cancelled:true,cancelledAt:Date.now()});
-    perkHint.textContent="🛡️ Escudo activado: ataque cancelado.";
-    btnShield.disabled=true;
-    hideTimeoutOverlay();
-    await clearActiveEffect();
-    renderPerkBar();
-  };
-
-  function applyIncomingEffect(effect){
-    if(!effect||!effect.id) return;
-    if(currentEffectId===effect.id) return;
-    if(effect.cancelled===true){ clearActiveEffect(); return; }
-    currentEffectId=effect.id;
-
-    if(effect.type==="timeout_block"){
-      showTimeoutOverlay(effect.byName);
-      const endAt=(effect.startedAt||Date.now())+(effect.durationMs||TIMEOUT_MS);
-      const tick=()=>{
-        if(!overlayTimeout.classList.contains("show")) return;
-        if(Date.now()>=endAt){
-          hideTimeoutOverlay();
-          clearActiveEffect();
-          return;
-        }
-        requestAnimationFrame(tick);
-      };
-      tick();
-      return;
-    }
-    clearActiveEffect();
-  }
-
-  // ===== Scoreboard =====
-  function renderScoreboard(teamsObj,targetEl){
-    const arr=Object.entries(teamsObj||{}).map(([id,t])=>({id,...t})).sort((a,b)=>(b.score||0)-(a.score||0));
-    targetEl.innerHTML="";
-    arr.forEach((t,idx)=>{
-      const div=document.createElement("div");
-      let cls="normal"; if(idx===0) cls="gold"; else if(idx===1) cls="silver"; else if(idx===2) cls="bronze";
-      div.className=`team ${cls}`;
-      div.innerHTML=`
-        <div class="name">${idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":"👥"} ${t.teamName||t.id}</div>
-        <div class="meta">Score: <b>${t.score??0}</b> · Vidas: ${clampLives(t.lives??MAX_LIVES)}</div>
-        <div class="members">${(t.members||[]).join(" / ")}</div>`;
-      targetEl.appendChild(div);
-    });
-    if(arr.length===0) targetEl.innerHTML=`<div class="hint">Sin equipos aún.</div>`;
-  }
-
-  // ===== HUD loop =====
-  let rafTimer=null;
-  function startHudLoop(){
-    const loop=()=>{
-      if(!screenGame.classList.contains("hidden")){
-        const msLeft=Math.max(0, TIME_LIMIT_MS-(Date.now()-qStartedAt));
-        timerTxt.textContent=formatMs(msLeft);
-        pointsTxt.textContent=String(computePointsNow());
-      }
-      rafTimer=requestAnimationFrame(loop);
-    };
-    if(rafTimer) cancelAnimationFrame(rafTimer);
-    rafTimer=requestAnimationFrame(loop);
-  }
-
-  // ===== Listeners =====
-  let listenersStarted=false;
-  function startListeners(){
-    if(listenersStarted) return;
-    listenersStarted=true;
-
-    onValue(ref(db, `rooms/${roomId}`), (snap)=>{
-      const room=snap.val()||{};
-      roomCache=room;
-
-      if(room.gameState==="starting" && room.startAt){
-        lobbyMsg.textContent="🚀 Iniciando…";
-        startCountdown(room.startAt);
-      } else if(room.gameState==="live"){
-        overlayCountdown.classList.remove("show");
-        show(screenGame);
-        statePill.textContent="jugando";
-        ensureQuestionOrder();
-        qIndex=Number(myTeam?.question||0);
-        if(qIndex>=QUESTIONS.length) qIndex=QUESTIONS.length-1;
-        renderQuestion();
-        startHudLoop();
+      const q = state.questions[state.qIdx];
+      ui.hud.stage.textContent = `${state.qIdx}/${state.questions.length}`; ui.hud.life.textContent = state.lives; ui.hud.qText.textContent = q.prompt; ui.hud.opts.innerHTML = ""; ui.hud.builder.style.display = 'none';
+      if(q.type === 'choice') {
+         ui.hud.opts.style.display = 'flex';
+         q.choices.forEach(c => { const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.textContent = c.txt; btn.dataset.idx = c.i; btn.onclick = () => handleAnswer(c.i === q.correctOriginal); ui.hud.opts.appendChild(btn); });
       } else {
-        show(screenLobby);
-        statePill.textContent="lobby";
-        lobbyMsg.textContent = room.allowJoin ? "✅ Conectado. Esperando inicio…" : "✅ Conectado. Esperando a que el host inicie…";
+         ui.hud.opts.style.display = 'none'; ui.hud.builder.style.display = 'flex'; drawTriangle(q.data); renderBuilder(q);
       }
-    });
-
-    onValue(ref(db, `rooms/${roomId}/teams`), (snap)=>{
-      const obj=snap.val()||{};
-      teamsObjCache=obj;
-
-      renderScoreboard(obj, teamsLobbyEl);
-      renderScoreboard(obj, teamsSideEl);
-
-      const me=obj?.[teamId];
-      if(me){
-        myTeam=me;
-
-        const L=clampLives(me.lives ?? MAX_LIVES);
-        setHearts(L);
-        if(L<=0) showGameOver();
-
-        const dbQ=Number(me.question||0);
-        if(roomCache.gameState==="live" && !isNaN(dbQ) && dbQ!==qIndex){
-          qIndex=Math.min(dbQ, QUESTIONS.length-1);
-          if(!overlayGameOver.classList.contains("show")) renderQuestion();
-        }
-
-        renderPerkBar();
-      }
-    });
-
-    onValue(effectsPath("active"), (snap)=>{
-      const effect=snap.val();
-      if(!effect) return;
-      if(effect.cancelled===true){ hideTimeoutOverlay(); return; }
-      applyIncomingEffect(effect);
-    });
-  }
-
-  // ===== Countdown =====
-  let countdownRunning=false;
-  function startCountdown(startAt){
-    if(countdownRunning) return;
-    countdownRunning=true;
-    overlayCountdown.classList.add("show");
-    const tick=()=>{
-      const ms=startAt-Date.now();
-      countNum.textContent=String(Math.max(0, Math.ceil(ms/1000)));
-      if(ms<=0){ overlayCountdown.classList.remove("show"); countdownRunning=false; return; }
-      requestAnimationFrame(tick);
-    };
-    tick();
-  }
-
-  // ===== Join =====
-  async function joinAsTeam(){
-    members=normalizeMembers();
-    if(members.length<1) throw new Error("Agrega al menos 1 integrante.");
-
-    const res=await checkRoom();
-    if(!res.ok) throw new Error(res.msg);
-
-    teamId="T"+Math.random().toString(36).slice(2,8).toUpperCase();
-    teamName=await reserveTeamName();
-
-    await set(ref(db, `rooms/${roomId}/teams/${teamId}`), {
-      teamName, members, score:0, lives:MAX_LIVES, ready:true, question:0, perks:{}, lastUpdate:Date.now()
-    });
-
-    localStorage.setItem("pirates_roomId", roomId);
-    localStorage.setItem("pirates_teamId", teamId);
-    localStorage.setItem("pirates_teamName", teamName);
-    localStorage.setItem("pirates_members", JSON.stringify(members));
-
-    // Genera y guarda orden aleatorio de preguntas al unirse
-    ensureQuestionOrder();
-
-    membersPill.textContent=members.join(" / ");
-    teamNamePill.textContent=teamName;
-    setPills();
-    setHearts(MAX_LIVES);
-
-    show(screenLobby);
-    statePill.textContent="lobby";
-    startListeners();
-  }
-
-  btnCheck.onclick=async ()=>{
-    try{
-      const res=await checkRoom();
-      regMsg.textContent=res.msg;
-      regMsg.style.color=res.ok?"#bfffd3":"#ffd0d0";
-    }catch(e){
-      regMsg.textContent=e.message;
-      regMsg.style.color="#ffd0d0";
+      updateUI();
     }
-  };
-  btnJoin.onclick=async ()=>{
-    try{
-      regMsg.textContent="Uniéndote...";
-      regMsg.style.color="#cfe1ff";
-      await joinAsTeam();
-      lobbyMsg.textContent="✅ Listo. Esperando a que el host inicie…";
-    }catch(e){
-      regMsg.textContent=e.message;
-      regMsg.style.color="#ffd0d0";
+
+    function drawTriangle(data) {
+       const ctx = ui.hud.canvas.getContext('2d'); ctx.clearRect(0,0,320,200); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.fillStyle = "#ffffff"; ctx.font = "14px Arial";
+       ctx.beginPath(); ctx.moveTo(40, 170); ctx.lineTo(280, 170); ctx.lineTo(280, 30); ctx.closePath(); ctx.stroke();
+       if(data.angle) { ctx.fillStyle = "#fbbf24"; ctx.fillText("∠" + data.angle, 15, 175); ctx.fillStyle = "#ffffff"; } 
+       ctx.fillText(data.ady, 160, 190); ctx.fillText(data.op, 290, 100); ctx.fillText(data.hip, 140, 90); 
     }
-  };
 
-  // ===== Boot =====
-  (async function boot(){
-    if(roomId && teamId){
-      try{
-        const snap=await get(ref(db, `rooms/${roomId}/teams/${teamId}`));
-        const roomSnap=await get(ref(db, `rooms/${roomId}`));
-        if(snap.exists() && roomSnap.exists()){
-          myTeam=snap.val();
-          roomCache=roomSnap.val();
-          teamName=myTeam.teamName||teamName;
-          members=myTeam.members||members;
-
-          membersPill.textContent=members.join(" / ");
-          teamNamePill.textContent=teamName;
-          setPills();
-          setHearts(clampLives(myTeam.lives ?? MAX_LIVES));
-
-          // asegura orden aleatorio al recargar
-          ensureQuestionOrder();
-
-          if(roomCache.gameState==="live"){
-            show(screenGame);
-            statePill.textContent="jugando";
-            qIndex=Number(myTeam.question||0);
-            if(qIndex>=QUESTIONS.length) qIndex=QUESTIONS.length-1;
-            renderQuestion();
-            startHudLoop();
-          } else {
-            show(screenLobby);
-            statePill.textContent="lobby";
+    // --- DRAG AND DROP ---
+    function renderBuilder(q) {
+       state.slotsFilled = { func:null, angle:null, num:null, den:null };
+       Object.values(ui.hud.slots).forEach(el => { el.innerHTML = ""; el.classList.remove('filled'); el.classList.remove('drag-over'); setupSlotEvents(el); });
+       ui.hud.blockPool.innerHTML = "";
+       ui.hud.blockPool.ondragover = (e) => { e.preventDefault(); ui.hud.blockPool.classList.add('drag-over'); };
+       ui.hud.blockPool.ondragleave = (e) => { ui.hud.blockPool.classList.remove('drag-over'); };
+       ui.hud.blockPool.ondrop = (e) => { 
+          e.preventDefault(); ui.hud.blockPool.classList.remove('drag-over');
+          if(state.draggedItem) { 
+             if(state.draggedItem.parentNode.classList.contains('slot')) {
+                state.draggedItem.parentNode.classList.remove('filled');
+                const slotType = state.draggedItem.parentNode.getAttribute('data-type');
+                if(slotType) state.slotsFilled[slotType] = null;
+             }
+             ui.hud.blockPool.appendChild(state.draggedItem); state.draggedItem = null;
           }
-
-          startListeners();
-          return;
-        } else {
-          localStorage.removeItem("pirates_teamId");
-          localStorage.removeItem("pirates_teamName");
-          localStorage.removeItem("pirates_members");
-        }
-      }catch{}
+       };
+       q.blocks.forEach(txt => { const b = createBlock(txt); ui.hud.blockPool.appendChild(b); });
+       ui.hud.submitBuild.onclick = () => {
+          const sol = q.solution; const user = state.slotsFilled;
+          const ok = (user.func === sol.f && user.angle === sol.a && user.num === sol.n && user.den === sol.d);
+          handleAnswer(ok);
+       };
     }
-    show(screenRegister);
-    statePill.textContent="registro";
-    setHearts(MAX_LIVES);
-  })();
-</script>
+
+    function setupSlotEvents(slot) {
+       slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
+       slot.ondragleave = (e) => { slot.classList.remove('drag-over'); };
+       slot.ondrop = (e) => {
+          e.preventDefault(); slot.classList.remove('drag-over');
+          if (state.draggedItem) {
+             if (slot.children.length > 0) { const existing = slot.children[0]; ui.hud.blockPool.appendChild(existing); }
+             slot.appendChild(state.draggedItem); slot.classList.add('filled');
+             const type = slot.getAttribute('data-type'); state.slotsFilled[type] = state.draggedItem.textContent; state.draggedItem = null;
+          }
+       };
+       slot.onclick = () => {
+          if(slot.children.length > 0) {
+             const item = slot.children[0]; ui.hud.blockPool.appendChild(item); slot.classList.remove('filled');
+             const type = slot.getAttribute('data-type'); state.slotsFilled[type] = null;
+          }
+       }
+    }
+
+    function createBlock(txt) {
+       const d = document.createElement('div'); d.className = 'math-block'; d.textContent = txt; d.draggable = true;
+       d.ondragstart = (e) => { state.draggedItem = d; e.dataTransfer.effectAllowed = 'move'; d.classList.add('dragging'); };
+       d.ondragend = (e) => { d.classList.remove('dragging'); };
+       return d;
+    }
+
+    async function handleAnswer(isCorrect) {
+      if(state.frozen || state.finished || state.isDead || state.incomingAttack) return; 
+      if(isCorrect) {
+        ui.hud.msg.textContent = "¡CORRECTO!"; ui.hud.msg.style.color = "#34d399";
+        const jump = state.tailwind ? 2 : 1; state.tailwind = false; state.qIdx += jump;
+        const total = state.inventory.cannon + state.inventory.shield + state.inventory.parrot + state.inventory.cut + state.inventory.heal + state.inventory.wind;
+        if(total < 4) {
+           const r = Math.random();
+           if(r<0.15) state.inventory.cannon++; else if(r<0.30) state.inventory.shield++; else if(r<0.45) state.inventory.parrot++; 
+           else if(r<0.60) state.inventory.cut++; 
+           else if(r<0.80) { if (state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
+           else { if (state.qIdx < 10) state.inventory.wind++; else if(state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
+           ui.hud.msg.textContent = "¡OBJETO OBTENIDO!"; ui.hud.msg.style.color = "var(--neon-gold)";
+        }
+        await update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { progress: Math.min(state.qIdx, TOTAL_QUESTIONS), lives: toSafeLives(state.lives) });
+        renderQuestion();
+      } else {
+        state.tailwind = false; ui.hud.msg.textContent = "¡FALLO!"; ui.hud.msg.style.color = "#f43f5e"; 
+        state.lives = Math.max(0, state.lives - 1);
+        await update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { lives: toSafeLives(state.lives) });
+        if(state.lives <= 0) { state.isDead = true; ui.overlays.gameover.style.display = 'flex'; update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status: 'dead' }); }
+        ui.hud.life.textContent = state.lives;
+      }
+      updateUI();
+    }
+
+    ui.overlays.cancelTargetBtn.onclick = () => { ui.overlays.targeting.style.display = 'none'; };
+
+    ui.perks.btnCannon.onclick = () => {
+       if(state.inventory.cannon > 0) {
+          ui.overlays.targeting.style.display = 'flex'; ui.overlays.targets.innerHTML = ""; const now = Date.now();
+          state.rivalsData.forEach(t => {
+             if(t.id === state.teamId) return;
+             const isImmune = (Number(t.effects?.immuneUntil||0) > now) || (Number(t.effects?.frozenUntil||0) > now);
+             const btn = document.createElement('button'); btn.className = 'target-btn';
+             btn.innerHTML = `<span>${t.teamName}</span> <span class="target-status">${isImmune ? '🛡️ REPARANDO' : '🎯 DISPONIBLE'}</span>`;
+             if(isImmune) btn.disabled = true;
+             btn.onclick = () => fireCannon(t.id, t.teamName); ui.overlays.targets.appendChild(btn);
+          });
+       }
+    };
+
+    function fireCannon(targetId, targetName) {
+        state.inventory.cannon--;
+        update(ref(db, `rooms/${state.roomCode}/teams/${targetId}/effects/incomingAttack`), { from: state.teamName, timestamp: Date.now() });
+        ui.hud.msg.textContent = `FUEGO A ${targetName}`; ui.overlays.targeting.style.display = 'none'; updateUI();
+    }
+
+    ui.perks.btnShield.onclick = () => { if(state.inventory.shield > 0 && !state.shield) { state.inventory.shield--; state.shield = true; ui.hud.msg.textContent = "ESCUDO ACTIVO"; const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = true; updateUI(); } };
+    ui.perks.btnParrot.onclick = () => { if(state.inventory.parrot > 0 && state.questions[state.qIdx]?.type === 'choice') { state.inventory.parrot--; const q = state.questions[state.qIdx]; const btns = Array.from(ui.hud.opts.children); const correctBtn = btns.find(b => parseInt(b.dataset.idx,10) === q.correctOriginal); if(correctBtn) correctBtn.classList.add('hint'); } updateUI(); };
+    ui.perks.btn5050.onclick = () => { if(state.inventory.cut > 0 && state.questions[state.qIdx]?.type === 'choice') { state.inventory.cut--; const q = state.questions[state.qIdx]; const btns = Array.from(ui.hud.opts.children); let rem=0; btns.forEach(b => { if(parseInt(b.dataset.idx,10) !== q.correctOriginal && rem<2) { b.classList.add('hidden'); rem++; } }); } updateUI(); };
+    ui.perks.btnHeal.onclick = () => { if(state.inventory.heal > 0 && state.lives < 3) { state.inventory.heal--; state.lives++; ui.hud.life.textContent = state.lives; update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { lives: toSafeLives(state.lives) }); } updateUI(); };
+    ui.perks.btnWind.onclick = () => { if(state.inventory.wind > 0 && !state.tailwind) { state.inventory.wind--; state.tailwind = true; ui.hud.msg.textContent = "VIENTO A FAVOR (x2)"; } updateUI(); };
+
+    function updateUI() {
+       ui.perks.bdgCannon.textContent = state.inventory.cannon; ui.perks.bdgShield.textContent = state.inventory.shield;
+       ui.perks.bdgParrot.textContent = state.inventory.parrot; ui.perks.bdg5050.textContent = state.inventory.cut;
+       ui.perks.bdgHeal.textContent = state.inventory.heal; ui.perks.bdgWind.textContent = state.inventory.wind;
+       
+       ui.perks.btnCannon.disabled = state.inventory.cannon <= 0; ui.perks.btnShield.disabled = state.inventory.shield <= 0 || state.shield;
+       ui.perks.btnParrot.disabled = state.inventory.parrot <= 0; ui.perks.btn5050.disabled = state.inventory.cut <= 0;
+       ui.perks.btnHeal.disabled = state.inventory.heal <= 0 || state.lives >= 3; ui.perks.btnWind.disabled = state.inventory.wind <= 0 || state.tailwind;
+       
+       ui.perks.btnShield.style.borderColor = state.shield ? "var(--neon-green)" : "transparent";
+       ui.perks.btnWind.style.borderColor = state.tailwind ? "white" : "transparent";
+       [ui.perks.btnCannon, ui.perks.btnShield, ui.perks.btnParrot, ui.perks.btn5050, ui.perks.btnHeal, ui.perks.btnWind].forEach(b => { if(!b.disabled) b.classList.add('active'); else b.classList.remove('active'); });
+    }
+
+    function medalForRank(rank){ if(rank===1) return "🥇"; if(rank===2) return "🥈"; if(rank===3) return "🥉"; return "🏴‍☠️"; }
+
+    function showPodiumByRank(allTeams){
+       if(state.podiumShown) return;
+       state.podiumShown = true;
+       switchScreen('podium');
+       try{ ui.audio.rain.pause(); ui.audio.wind.pause(); }catch(e){}
+       const ranked = allTeams.filter(t => t && t.approved && Number(t.finishRank || 0) > 0).sort((a,b) => Number(a.finishRank) - Number(b.finishRank));
+       ui.podium.list.innerHTML = "";
+       ranked.slice(0,3).forEach((t) => {
+         const r = Number(t.finishRank);
+         const medal = medalForRank(r);
+         const div = document.createElement('div');
+         div.className = `podium-item ${r===1?'rank-1':r===2?'rank-2':r===3?'rank-3':''}`;
+         const colorHex = '#' + (Number(t.color||0xffffff)).toString(16).padStart(6,'0');
+         div.innerHTML = `<div style="display:flex; align-items:center; gap:10px; min-width:90px;"><div style="font-size:26px;">${medal}</div><div style="font-weight:bold;">#${r}</div></div><div style="flex:1;"><div style="font-weight:bold; color:${colorHex};">${escapeHtml(t.teamName||"Equipo")}</div><div style="color:#94a3b8; font-size:12px; margin-top:2px;">${escapeHtml((t.members||[]).filter(Boolean).join(", "))}</div></div>`;
+         ui.podium.list.appendChild(div);
+       });
+       const btn = ui.podium.btn; btn.disabled = true; btn.textContent = "REGRESAR AL LOBBY"; btn.style.background = "#1e293b";
+       ui.podium.hint.textContent = "El botón se habilitará automáticamente.";
+       if(state.podiumUnlockTimer) clearTimeout(state.podiumUnlockTimer);
+       state.podiumUnlockTimer = setTimeout(() => { btn.disabled = false; btn.style.background = "#f43f5e"; ui.podium.hint.textContent = "Ya puedes cerrar."; }, 5000); // 5 sec wait
+       btn.onclick = () => { localStorage.removeItem("pirates_team"); location.reload(); };
+    }
+
+    function escapeHtml(str){ return String(str ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+
+    function switchScreen(id){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); ui.screens[id].classList.add('active'); }
+    function shuffle(a){ for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+    let myTargetZ=0; const rivalTargets = [{z:-50,vis:false,x:-12,idxOffset:-2}, {z:-50,vis:false,x:-6,idxOffset:-1}, {z:50,vis:false,x:6,idxOffset:1}, {z:50,vis:false,x:12,idxOffset:2}];
+
+    function update3D(prog, allTeams, myIdx) {
+       myTargetZ = -(prog * 10);
+       for(let i=0; i<4; i++) {
+          const cfg = rivalTargets[i]; const n = allTeams[myIdx + cfg.idxOffset];
+          if(n) {
+             cfg.vis = true; cfg.z = -(Number(n.progress||0) * 10);
+             rivalLabels[i].textContent = n.teamName || ""; rivalLabels[i].style.display = 'block';
+             const c = (typeof n.color === "number") ? n.color : 0xffffff;
+             rivalLabels[i].style.borderColor = '#' + c.toString(16).padStart(6,'0');
+             if(rivals[i].userData.color !== c) { scene.remove(rivals[i]); const nb = createBoat(c); nb.userData.color = c; nb.position.copy(rivals[i].position); rivals[i] = nb; scene.add(rivals[i]); }
+             const s = rivals[i].getObjectByName("shieldMesh"); if(s && n.effects) s.visible = (Number(n.effects.immuneUntil||0) > Date.now());
+          } else { cfg.vis = false; rivalLabels[i].style.display = 'none'; }
+       }
+    }
+
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate); time += 0.02;
+      const rPos = rain.geometry.attributes.position.array; for(let i=1; i<rPos.length; i+=3) { rPos[i]-=3; if(rPos[i]<-100) rPos[i]=300; } rain.geometry.attributes.position.needsUpdate = true;
+      const pos = water.geometry.attributes.position; for(let i=0; i<pos.count; i++) pos.setZ(i, Math.sin(pos.getX(i)/3+time)*1.5 + Math.cos(pos.getY(i)/4+time)); pos.needsUpdate = true;
+      myBoat.position.z += (myTargetZ - myBoat.position.z) * 0.05; myBoat.position.y = Math.sin(time) * 0.4; myBoat.rotation.x = Math.sin(time*0.5)*0.1;
+      if(krakenGroup.visible) krakenGroup.children.forEach((t, i) => { t.rotation.x = Math.sin(time*2+i)*0.5; t.position.y = -2+Math.sin(time*3+i)*2; });
+      for(let i=0; i<4; i++) {
+         const cfg = rivalTargets[i]; const boat = rivals[i];
+         if(cfg.vis) { boat.visible = true; boat.position.z += (cfg.z - boat.position.z)*0.05; boat.position.x = cfg.x; boat.position.y = Math.sin(time+i)*0.4; updateLabel(boat, rivalLabels[i]); } 
+         else { boat.visible = false; }
+      }
+      if(explosionActive) {
+         const pos = explosionSystem.geometry.attributes.position.array;
+         for(let i=0; i<200; i++) { pos[i*3] += pVel[i].x; pos[i*3+1] += pVel[i].y; pos[i*3+2] += pVel[i].z; }
+         explosionSystem.geometry.attributes.position.needsUpdate = true;
+      }
+      labelMe.style.display = state.teamName ? 'block' : 'none'; updateLabel(myBoat, labelMe);
+      camera.position.set(0, 10, myBoat.position.z + 20); camera.lookAt(0, 2, myBoat.position.z - 10);
+      renderer.render(scene, camera);
+    }
+    function updateLabel(obj, el) {
+       if(!el || el.style.display==='none') return;
+       const v = new THREE.Vector3(0,4,0); v.applyMatrix4(obj.matrixWorld); v.project(camera);
+       el.style.left = `${(v.x*.5+.5)*viewport.clientWidth}px`; el.style.top = `${(-(v.y*.5)+.5)*viewport.clientHeight}px`; el.style.opacity = v.z>1?0:1;
+    }
+    animate(); window.onresize = () => { camera.aspect = viewport.clientWidth/viewport.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(viewport.clientWidth, viewport.clientHeight); };
+  </script>
 </body>
 </html>
