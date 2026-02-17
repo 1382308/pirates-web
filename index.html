@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Pirates Trig Race - Final v23 (Instant Reconnect)</title>
+  <title>Pirates Trig Race - Final v23 (No Builder)</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
     :root {
       --neon-blue: #38bdf8; --neon-gold: #fbbf24; --neon-green: #34d399; --neon-red: #f43f5e; --neon-purple: #a855f7;
@@ -18,18 +20,29 @@
     /* 3D WORLD */
     #viewport-3d { position: relative; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at center, #64748b, #1e293b); }
     canvas { display: block; width: 100% !important; height: 100% !important; }
-    .boat-label { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; pointer-events: none; transform: translate(-50%, -120%); white-space: nowrap; display: none; z-index: 10; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; text-shadow: 0 2px 2px black; transition: top 0.1s, left 0.1s; }
+    .boat-label {
+      position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px;
+      font-size: 10px; pointer-events: none; transform: translate(-50%, -120%); white-space: nowrap; display: none; z-index: 10;
+      border: 1px solid rgba(255,255,255,0.3); font-weight: bold; text-shadow: 0 2px 2px black; transition: top 0.1s, left 0.1s;
+    }
 
     /* STATS OVERLAY */
     #viewport-ui { position: absolute; top: 15px; right: 15px; z-index: 20; display: flex; gap: 10px; }
-    .stat-pill { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--neon-blue); padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 18px; color: white; text-shadow: 0 1px 2px black; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 6px; }
+    .stat-pill {
+      background: rgba(15, 23, 42, 0.8); border: 1px solid var(--neon-blue); padding: 8px 16px; border-radius: 20px;
+      font-weight: 800; font-size: 18px; color: white; text-shadow: 0 1px 2px black; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: flex; align-items: center; gap: 6px;
+    }
 
     /* OVERLAYS */
-    #kraken-overlay, #frozen-overlay, #gameover-overlay, #targeting-overlay, #incoming-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
+    #kraken-overlay, #frozen-overlay, #gameover-overlay, #targeting-overlay, #incoming-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; display: none;
+      flex-direction: column; align-items: center; justify-content: center; pointer-events: auto;
+    }
     #gameover-overlay { background: rgba(10, 0, 0, 0.95); z-index: 100; }
     #incoming-overlay { background: rgba(220, 38, 38, 0.9); animation: flashRed 0.5s infinite alternate; }
     @keyframes flashRed { from { background: rgba(220, 38, 38, 0.8); } to { background: rgba(153, 27, 27, 0.9); } }
-    
+
     #start-overlay {
       position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.22), rgba(0,0,0,0.92));
       z-index: 120; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto;
@@ -43,19 +56,22 @@
       font-family: var(--font-title); font-size: 120px; color: white; text-shadow: 0 0 35px rgba(0,0,0,0.9);
       line-height: 1; transform: translateY(-6px);
     }
-    
+
     .alert-title { font-family: var(--font-title); font-size: 60px; color: white; text-shadow: 0 0 20px black; text-transform: uppercase; margin-bottom: 10px; text-align:center; letter-spacing: 2px; }
     .alert-sub { font-size: 20px; color: white; margin-bottom: 20px; text-align: center; }
     .alert-timer { color:var(--neon-gold); font-size:50px; font-weight:bold; text-shadow: 2px 2px 0px black; }
     .skull-img { width: 140px; height: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 15px red); animation: pulse 2s infinite; }
-    
+
     #target-list { width: 90%; max-width: 400px; max-height: 70%; overflow-y: auto; background: #1e293b; border-radius: 12px; padding: 10px; border: 2px solid var(--neon-red); }
-    .target-btn { width: 100%; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; font-family: var(--font-ui); font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
+    .target-btn {
+      width: 100%; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: white; font-family: var(--font-ui); font-size: 18px; font-weight: bold; cursor: pointer; display: flex;
+      justify-content: space-between; align-items: center; border-radius: 8px;
+    }
     .target-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: var(--neon-red); }
     .target-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
     .target-status { font-size: 12px; color: #94a3b8; font-weight: normal; }
 
-    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
     /* UI PANEL */
@@ -75,72 +91,105 @@
     .btn-main:disabled { background: #334155 !important; color: #64748b !important; cursor: not-allowed; opacity: 0.6; }
     .btn-counter { background: white; color: #dc2626; font-size: 22px; padding: 20px; border: 4px solid #dc2626; box-shadow: 0 0 20px white; animation: pulse 0.5s infinite; }
 
-    #qText { font-size: 18px; font-weight: 700; margin-bottom: 15px; line-height: 1.3; min-height: 40px; text-align: center; }
+    #qText { font-size: 18px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; min-height: 40px; text-align: center; }
     .opts-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-    .opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-align: left; width: 100%; }
+    .opt-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; text-align: left; width: 100%;
+    }
     .opt-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--neon-blue); }
     .opt-btn.hidden { opacity: 0.1; pointer-events: none; }
     .opt-btn.hint { border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
 
-    /* BUILDER */
-    #builder-area { display: none; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
-    #triCanvas { background: #1e293b; border-radius: 8px; display: block; border: 1px solid #475569; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); width: 100%; max-width: 350px; height: 200px; object-fit: contain; }
-    .equation-container { display: flex; align-items: center; gap: 6px; justify-content: center; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 5px; }
-    .eq-sign { font-size: 20px; font-weight: bold; color: var(--neon-gold); }
-    .degree-symbol { font-size: 18px; color: #cbd5e1; margin-left: -4px; }
-    .fraction { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .frac-line { width: 100%; height: 2px; background: white; border-radius: 2px; }
-    .slot { width: 50px; height: 32px; border: 2px dashed #475569; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-    .slot.filled { border-style: solid; border-color: var(--neon-blue); background: rgba(56, 189, 248, 0.2); }
-    .slot.filled:hover { border-color: var(--neon-red); background: rgba(244, 63, 94, 0.2); }
-    .block-pool { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 5px; min-height: 60px; width: 100%; background: rgba(0,0,0,0.2); border-radius: 8px; }
-    .block-pool.drag-over { background: rgba(255,255,255,0.1); }
-    .math-block { background: var(--neon-blue); color: #0f172a; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: grab; user-select: none; box-shadow: 0 3px 0 #0369a1; transition: transform 0.1s; }
-    .math-block:active { cursor: grabbing; }
-    .math-block.dragging { opacity: 0.5; }
+    /* TRIANGLE VISUAL (no builder) */
+    #triWrap { display:none; width:100%; margin: 8px 0 6px; }
+    #triCanvas {
+      background: #1e293b; border-radius: 8px; display: block; border: 1px solid #475569;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+      width: 100%; max-width: 360px; height: 200px; margin: 0 auto;
+    }
+    .triHint { font-size: 12px; color:#94a3b8; text-align:center; margin-top:6px; }
 
     /* PERKS */
     .perks-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; width: 100%; }
-    .perk-btn { padding: 8px; font-size: 10px; display: flex; flex-direction: column; align-items: center; border: 1px solid transparent; border-radius: 8px; position:relative; background: rgba(255,255,255,0.05); color: #64748b; opacity: 0.4; cursor: not-allowed; transition: all 0.3s; }
+    .perk-btn {
+      padding: 8px; font-size: 10px; display: flex; flex-direction: column; align-items: center; border: 1px solid transparent;
+      border-radius: 8px; position:relative; background: rgba(255,255,255,0.05); color: #64748b; opacity: 0.4; cursor: not-allowed; transition: all 0.3s;
+    }
     .perk-btn.active { opacity: 1; cursor: pointer; background: rgba(255,255,255,0.15); color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     .perk-btn span { font-size: 20px; margin-bottom: 2px; filter: grayscale(100%); transition: 0.3s; }
     .perk-btn.active span { filter: grayscale(0%); }
-    .perk-badge { position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    #btnCannon.active { border-color: var(--neon-red); } #btnShield.active { border-color: var(--neon-blue); } #btnParrot.active { border-color: var(--neon-purple); } #btn5050.active { border-color: var(--neon-gold); } #btnHeal.active { border-color: var(--neon-green); } #btnWind.active { border-color: white; box-shadow: 0 0 10px white; }
+    .perk-badge {
+      position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%;
+      width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    #btnCannon.active { border-color: var(--neon-red); }
+    #btnShield.active { border-color: var(--neon-blue); }
+    #btnParrot.active { border-color: var(--neon-purple); }
+    #btn5050.active { border-color: var(--neon-gold); }
+    #btnHeal.active { border-color: var(--neon-green); }
+    #btnWind.active { border-color: white; box-shadow: 0 0 10px white; }
 
     .podium-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid transparent; margin-bottom: 8px; gap:10px; }
     .rank-1 { border-color: var(--neon-gold); background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), transparent); }
-    .rank-2 { border-color: #94a3b8; } .rank-3 { border-color: #d97706; }
+    .rank-2 { border-color: #94a3b8; }
+    .rank-3 { border-color: #d97706; }
 
-    @media (max-width: 900px) { body { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; } #command-panel { border-left: none; border-top: 2px solid var(--neon-blue); } }
+    @media (max-width: 900px) {
+      body { grid-template-columns: 1fr; grid-template-rows: 40vh 1fr; }
+      #command-panel { border-left: none; border-top: 2px solid var(--neon-blue); }
+    }
   </style>
 </head>
-<body>
 
+<body>
   <audio id="rainSound" loop preload="auto" src="lluvia.mp3"></audio>
   <audio id="windSound" loop preload="auto" src="viento.mp3"></audio>
 
   <div id="viewport-3d">
     <div id="labelsContainer"></div>
-    <div id="viewport-ui"><div class="stat-pill">❤️ <span id="lifeText">3</span></div><div class="stat-pill">🏁 <span id="stagePill">0/30</span></div></div>
-    
+    <div id="viewport-ui">
+      <div class="stat-pill">❤️ <span id="lifeText">3</span></div>
+      <div class="stat-pill">🏁 <span id="stagePill">0/30</span></div>
+    </div>
+
     <div id="start-overlay">
       <div class="start-title">¡LISTOS!</div>
       <div class="start-sub">La carrera inicia en…</div>
       <div id="start-timer" class="start-timer">5</div>
     </div>
-    
+
     <div id="kraken-overlay">
       <div class="alert-title" style="color:var(--neon-purple); text-shadow:0 0 40px var(--neon-purple); font-size:64px;">¡LA BESTIA EMERGE!</div>
       <div class="alert-sub" style="color:#d8b4fe;">Tentáculos gigantes te han atrapado...</div>
       <div id="kraken-timer" class="alert-timer">5</div>
     </div>
-    
-    <div id="frozen-overlay"><div class="alert-title">¡DAÑO CRÍTICO!</div><div class="alert-sub">Reparando casco...</div><div id="frozen-timer" class="alert-timer">10</div></div>
-    
-    <div id="incoming-overlay" style="display:none;"><div class="alert-title">¡ALERTA!</div><div class="alert-sub" style="font-size:24px; font-weight:bold;">¡CAÑONAZO ENTRANTE!</div><button id="btn-counter-shield" class="btn-counter">¡ACTIVAR ESCUDO!</button><div style="margin-top:20px; color:white;">IMPACTO EN: <span id="inc-timer" class="alert-timer">3</span></div></div>
-    <div id="targeting-overlay" style="display:none; background:rgba(0,0,0,0.9);"><h2 style="color:var(--neon-red); font-family:var(--font-title); margin-bottom:20px;">SELECCIONA OBJETIVO</h2><div id="target-list"></div><button id="cancelTargetBtn" style="margin-top:20px; width:200px; background:#334155;">CANCELAR</button></div>
-    <div id="gameover-overlay"><img src="gameover.png" alt="Skull" class="skull-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><div style="font-size:80px; display:none;">💀</div><div class="alert-title">GAME OVER</div><div style="color:var(--neon-red); font-size:20px;">Tu viaje termina aquí.</div></div>
+
+    <div id="frozen-overlay">
+      <div class="alert-title">¡DAÑO CRÍTICO!</div>
+      <div class="alert-sub">Reparando casco...</div>
+      <div id="frozen-timer" class="alert-timer">10</div>
+    </div>
+
+    <div id="incoming-overlay" style="display:none;">
+      <div class="alert-title">¡ALERTA!</div>
+      <div class="alert-sub" style="font-size:24px; font-weight:bold;">¡CAÑONAZO ENTRANTE!</div>
+      <button id="btn-counter-shield" class="btn-counter">¡ACTIVAR ESCUDO!</button>
+      <div style="margin-top:20px; color:white;">IMPACTO EN: <span id="inc-timer" class="alert-timer">3</span></div>
+    </div>
+
+    <div id="targeting-overlay" style="display:none; background:rgba(0,0,0,0.9);">
+      <h2 style="color:var(--neon-red); font-family:var(--font-title); margin-bottom:20px;">SELECCIONA OBJETIVO</h2>
+      <div id="target-list"></div>
+      <button id="cancelTargetBtn" style="margin-top:20px; width:200px; background:#334155;">CANCELAR</button>
+    </div>
+
+    <div id="gameover-overlay">
+      <img src="gameover.png" alt="Skull" class="skull-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <div style="font-size:80px; display:none;">💀</div>
+      <div class="alert-title">GAME OVER</div>
+      <div style="color:var(--neon-red); font-size:20px;">Tu viaje termina aquí.</div>
+    </div>
   </div>
 
   <aside id="command-panel">
@@ -173,23 +222,17 @@
       <div id="hud" class="screen">
         <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-start;">
           <div id="qText">Preparando cañones...</div>
-          <div id="opts" class="opts-grid"></div>
-          <div id="builder-area">
+
+          <div id="triWrap">
             <canvas id="triCanvas" width="320" height="200"></canvas>
-            <div style="font-size:12px; color:#94a3b8; text-align:center; margin-bottom:5px;">Arrastra los bloques:</div>
-            <div class="equation-container">
-              <div id="slotFunc" class="slot" data-type="func"></div>
-              <div id="slotAngle" class="slot" data-type="angle"></div>
-              <div class="degree-symbol">°</div><div class="eq-sign">=</div>
-              <div class="fraction">
-                <div id="slotNum" class="slot" data-type="num"></div><div class="frac-line"></div><div id="slotDen" class="slot" data-type="den"></div>
-              </div>
-            </div>
-            <div id="blockPool" class="block-pool"></div>
-            <button id="btnSubmitBuild" class="btn-main" style="padding:10px; font-size:14px; margin-top:5px;">FUEGO</button>
+            <div class="triHint">Observa el triángulo para identificar el lado solicitado.</div>
           </div>
+
+          <div id="opts" class="opts-grid"></div>
         </div>
+
         <div id="msg" style="text-align:center; margin:10px 0; font-weight:bold; height:20px; color:var(--neon-gold);"></div>
+
         <div class="perks-grid">
           <button id="btnCannon" class="perk-btn" disabled><span>💣</span>CAÑÓN<div class="perk-badge" id="bdgCannon">0</div></button>
           <button id="btnShield" class="perk-btn" disabled><span>🛡️</span>ESCUDO<div class="perk-badge" id="bdgShield">0</div></button>
@@ -204,7 +247,9 @@
         <h2 style="text-align:center; color:var(--neon-gold); margin-bottom:5px;">RESULTADOS</h2>
         <p style="text-align:center; color:#94a3b8; font-size:13px; margin-bottom:20px;">PARTIDA FINALIZADA</p>
         <div id="podiumList" style="flex:1; overflow-y:auto;"></div>
-        <div style="margin-top:20px;"><button id="backToLobbyBtn" class="btn-main" disabled style="background:#1e293b;">REGRESAR AL LOBBY</button></div>
+        <div style="margin-top:20px;">
+          <button id="backToLobbyBtn" class="btn-main" disabled style="background:#1e293b;">REGRESAR AL LOBBY</button>
+        </div>
         <div id="podiumHint" style="margin-top:10px; color:#94a3b8; font-size:12px; text-align:center;">El botón se habilitará automáticamente.</div>
       </div>
     </div>
@@ -212,17 +257,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script src="./firebase-config.js"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
     import { getDatabase, ref, get, set, update, onValue, push, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
     if (!window.FIREBASE_CONFIG) { alert("Falta firebase-config.js"); throw new Error("Missing config"); }
-    const TOTAL_QUESTIONS = 30;
-    const app = initializeApp(window.FIREBASE_CONFIG);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
 
+    // ---- CONFIG ----
     const PIRATE_DATA = [
       { name: "🏴‍☠️ La Perla Negra", color: 0x111111 }, { name: "👻 El Holandés Errante", color: 0x2ec4b6 },
       { name: "🚩 Furia Escarlata", color: 0xd62828 }, { name: "👑 Venganza de la Reina", color: 0x540b0e },
@@ -236,6 +279,8 @@
       { name: "⚫ Abismo Negro", color: 0x000000 }, { name: "🛡️ Titán de Bronce", color: 0xcd7f32 }
     ];
 
+    // ---- QUESTIONS (NO BUILDER) ----
+    // Nota: Las preguntas con "data" dibujan triángulo. Las opciones son valores (op/ady/hip).
     const QUESTIONS_DB = [
       { type: "choice", prompt: "¿Qué es un triángulo rectángulo?", choices: ["Tiene un ángulo recto","Todos lados iguales","Dos ángulos obtusos","No tiene ángulos"], answer: 0 },
       { type: "choice", prompt: "¿Cómo se llama el lado más largo?", choices: ["Cateto","Hipotenusa","Base","Altura"], answer: 1 },
@@ -257,52 +302,106 @@
       { type: "choice", prompt: "Razones sirven para…", choices: ["Relacionar ángulos y lados","Calcular perímetros","Sumar fracciones","Clasificar"], answer: 0 },
       { type: "choice", prompt: "Pitágoras halla…", choices: ["Lado faltante","Volumen","Probabilidad","Mediana"], answer: 0 },
       { type: "choice", prompt: "Trigonometría relaciona…", choices: ["Ángulo con lados","Cuadrados siempre","Áreas","Perímetros"], answer: 0 },
-      { type: "builder", prompt: "Arma la ecuación de SENO", data: {op:3,ady:4,hip:5,angle:"A"}, blocks: ["sen","cos","tan","3","4","5","A"], solution: {f:"sen", a:"A", n:"3", d:"5"} },
-      { type: "builder", prompt: "Arma la ecuación de COSENO", data: {op:12,ady:5,hip:13,angle:"B"}, blocks: ["sen","cos","tan","12","5","13","B"], solution: {f:"cos", a:"B", n:"5", d:"13"} },
-      { type: "builder", prompt: "Arma la ecuación de TANGENTE", data: {op:8,ady:15,hip:17,angle:"X"}, blocks: ["sen","cos","tan","8","15","17","X"], solution: {f:"tan", a:"X", n:"8", d:"15"} },
-      { type: "builder", prompt: "SENO si Hip=10, Op=6", data: {op:6,ady:8,hip:10,angle:"C"}, blocks: ["sen","cos","tan","6","8","10","C"], solution: {f:"sen", a:"C", n:"6", d:"10"} },
-      { type: "builder", prompt: "COSENO para ángulo D", data: {op:7,ady:24,hip:25,angle:"D"}, blocks: ["sen","cos","tan","7","24","25","D"], solution: {f:"cos", a:"D", n:"24", d:"25"} },
-      { type: "builder", prompt: "TANGENTE ángulo E", data: {op:20,ady:21,hip:29,angle:"E"}, blocks: ["sen","cos","tan","20","21","29","E"], solution: {f:"tan", a:"E", n:"20", d:"21"} },
-      { type: "builder", prompt: "SENO ángulo F", data: {op:9,ady:40,hip:41,angle:"F"}, blocks: ["sen","cos","tan","9","40","41","F"], solution: {f:"sen", a:"F", n:"9", d:"41"} },
-      { type: "builder", prompt: "COSENO ángulo G", data: {op:15,ady:20,hip:25,angle:"G"}, blocks: ["sen","cos","tan","15","20","25","G"], solution: {f:"cos", a:"G", n:"20", d:"25"} },
-      { type: "builder", prompt: "TANGENTE ángulo H", data: {op:10,ady:24,hip:26,angle:"H"}, blocks: ["sen","cos","tan","10","24","26","H"], solution: {f:"tan", a:"H", n:"10", d:"24"} },
-      { type: "builder", prompt: "SENO ángulo I", data: {op:15,ady:8,hip:17,angle:"I"}, blocks: ["sen","cos","tan","15","8","17","I"], solution: {f:"sen", a:"I", n:"15", d:"17"} }
-    ];
 
+      // 10 preguntas de identificación (antes builder). Se mantienen 30 total.
+      { type:"choice", prompt:"En el triángulo, ¿cuál es el CATETO OPUESTO respecto al ángulo A?", data:{op:3,ady:4,hip:5,angle:"A"}, choices:["3","4","5"], answer:0 },
+      { type:"choice", prompt:"En el triángulo, ¿cuál es el CATETO ADYACENTE respecto al ángulo B?", data:{op:12,ady:5,hip:13,angle:"B"}, choices:["12","5","13"], answer:1 },
+      { type:"choice", prompt:"En el triángulo, ¿cuál es la HIPOTENUSA?", data:{op:8,ady:15,hip:17,angle:"X"}, choices:["8","15","17"], answer:2 },
+      { type:"choice", prompt:"Respecto al ángulo C, identifica el CATETO OPUESTO.", data:{op:6,ady:8,hip:10,angle:"C"}, choices:["6","8","10"], answer:0 },
+      { type:"choice", prompt:"Respecto al ángulo D, identifica el CATETO ADYACENTE.", data:{op:7,ady:24,hip:25,angle:"D"}, choices:["7","24","25"], answer:1 },
+      { type:"choice", prompt:"Respecto al ángulo E, identifica la HIPOTENUSA.", data:{op:20,ady:21,hip:29,angle:"E"}, choices:["20","21","29"], answer:2 },
+      { type:"choice", prompt:"Respecto al ángulo F, ¿cuál es el CATETO OPUESTO?", data:{op:9,ady:40,hip:41,angle:"F"}, choices:["9","40","41"], answer:0 },
+      { type:"choice", prompt:"Respecto al ángulo G, ¿cuál es el CATETO ADYACENTE?", data:{op:15,ady:20,hip:25,angle:"G"}, choices:["15","20","25"], answer:1 },
+      { type:"choice", prompt:"Respecto al ángulo H, ¿cuál es la HIPOTENUSA?", data:{op:10,ady:24,hip:26,angle:"H"}, choices:["10","24","26"], answer:2 },
+      { type:"choice", prompt:"Respecto al ángulo I, identifica el CATETO OPUESTO.", data:{op:15,ady:8,hip:17,angle:"I"}, choices:["15","8","17"], answer:0 },
+    ];
+    const TOTAL_QUESTIONS = QUESTIONS_DB.length;
+
+    // ---- FIREBASE ----
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // ---- UI ----
     const ui = {
-      screens: { entry: document.getElementById('entryScreen'), waiting: document.getElementById('waitingScreen'), hud: document.getElementById('hud'), podium: document.getElementById('podiumScreen') },
-      inputs: { room: document.getElementById('roomInput'), m1: document.getElementById('member1'), m2: document.getElementById('member2'), joinBtn: document.getElementById('joinBtn'), error: document.getElementById('joinError') },
-      hud: { 
-        stage: document.getElementById('stagePill'), life: document.getElementById('lifeText'), qText: document.getElementById('qText'), opts: document.getElementById('opts'), msg: document.getElementById('msg'), labels: document.getElementById('labelsContainer'), builder: document.getElementById('builder-area'), canvas: document.getElementById('triCanvas'), dropZone: document.getElementById('dropZone'), blockPool: document.getElementById('blockPool'), submitBuild: document.getElementById('btnSubmitBuild'),
-        slots: { func: document.getElementById('slotFunc'), angle: document.getElementById('slotAngle'), num: document.getElementById('slotNum'), den: document.getElementById('slotDen') }
+      screens: {
+        entry: document.getElementById('entryScreen'),
+        waiting: document.getElementById('waitingScreen'),
+        hud: document.getElementById('hud'),
+        podium: document.getElementById('podiumScreen')
       },
-      perks: { btnCannon: document.getElementById('btnCannon'), bdgCannon: document.getElementById('bdgCannon'), btnShield: document.getElementById('btnShield'), bdgShield: document.getElementById('bdgShield'), btnParrot: document.getElementById('btnParrot'), bdgParrot: document.getElementById('bdgParrot'), btn5050: document.getElementById('btn5050'), bdg5050: document.getElementById('bdg5050'), btnHeal: document.getElementById('btnHeal'), bdgHeal: document.getElementById('bdgHeal'), btnWind: document.getElementById('btnWind'), bdgWind: document.getElementById('bdgWind') },
+      inputs: {
+        room: document.getElementById('roomInput'),
+        m1: document.getElementById('member1'),
+        m2: document.getElementById('member2'),
+        joinBtn: document.getElementById('joinBtn'),
+        error: document.getElementById('joinError')
+      },
+      hud: {
+        stage: document.getElementById('stagePill'),
+        life: document.getElementById('lifeText'),
+        qText: document.getElementById('qText'),
+        opts: document.getElementById('opts'),
+        msg: document.getElementById('msg'),
+        labels: document.getElementById('labelsContainer'),
+        triWrap: document.getElementById('triWrap'),
+        canvas: document.getElementById('triCanvas'),
+      },
+      perks: {
+        btnCannon: document.getElementById('btnCannon'), bdgCannon: document.getElementById('bdgCannon'),
+        btnShield: document.getElementById('btnShield'), bdgShield: document.getElementById('bdgShield'),
+        btnParrot: document.getElementById('btnParrot'), bdgParrot: document.getElementById('bdgParrot'),
+        btn5050: document.getElementById('btn5050'), bdg5050: document.getElementById('bdg5050'),
+        btnHeal: document.getElementById('btnHeal'), bdgHeal: document.getElementById('bdgHeal'),
+        btnWind: document.getElementById('btnWind'), bdgWind: document.getElementById('bdgWind')
+      },
       wait: { txt: document.getElementById('waitingText'), team: document.getElementById('teamNameDisplay') },
       podium: { list: document.getElementById('podiumList'), btn: document.getElementById('backToLobbyBtn'), hint: document.getElementById('podiumHint') },
       audio: { rain: document.getElementById('rainSound'), wind: document.getElementById('windSound') },
-      overlays: { start: document.getElementById('start-overlay'), startTimer: document.getElementById('start-timer'), kraken: document.getElementById('kraken-overlay'), frozen: document.getElementById('frozen-overlay'), incoming: document.getElementById('incoming-overlay'), incTimer: document.getElementById('inc-timer'), gameover: document.getElementById('gameover-overlay'), targeting: document.getElementById('targeting-overlay'), targets: document.getElementById('target-list'), kTimer: document.getElementById('kraken-timer'), fTimer: document.getElementById('frozen-timer'), btnCounter: document.getElementById('btn-counter-shield'), cancelTargetBtn: document.getElementById('cancelTargetBtn') }
+      overlays: {
+        start: document.getElementById('start-overlay'),
+        startTimer: document.getElementById('start-timer'),
+        kraken: document.getElementById('kraken-overlay'),
+        frozen: document.getElementById('frozen-overlay'),
+        incoming: document.getElementById('incoming-overlay'),
+        incTimer: document.getElementById('inc-timer'),
+        gameover: document.getElementById('gameover-overlay'),
+        targeting: document.getElementById('targeting-overlay'),
+        targets: document.getElementById('target-list'),
+        kTimer: document.getElementById('kraken-timer'),
+        fTimer: document.getElementById('frozen-timer'),
+        btnCounter: document.getElementById('btn-counter-shield'),
+        cancelTargetBtn: document.getElementById('cancelTargetBtn')
+      }
     };
 
-    let state = { 
-      roomCode: null, teamId: null, teamName: "", teamColor: 0xffffff, 
+    // ---- STATE ----
+    let state = {
+      roomCode: null, teamId: null, teamName: "", teamColor: 0xffffff,
       qIdx: 0, lives: 3, started: false, finished: false, isDead: false,
-      questions: [], rivalsData: [], 
+      questions: [], rivalsData: [],
       frozen: false, shield: false, tailwind: false,
       inventory: { cannon: 0, shield: 0, parrot: 0, cut: 0, heal: 0, wind: 0 },
-      selectedBlock: null, slotsFilled: { func:null, angle:null, num:null, den:null }, incomingAttack: false, draggedItem: null,
+      incomingAttack: false,
       approved: false, roomStatus: 'lobby', countdownRunning: false, finishRank: null, podiumShown: false, podiumUnlockTimer: null
     };
 
-    // --- 3D ENGINE ---
+    // ---- 3D ENGINE ----
     const viewport = document.getElementById('viewport-3d');
     const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x64748b, 0.025);
     const camera = new THREE.PerspectiveCamera(65, viewport.clientWidth / viewport.clientHeight, 0.1, 300);
     const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true});
     renderer.setSize(viewport.clientWidth, viewport.clientHeight); viewport.appendChild(renderer.domElement);
+
     const amb = new THREE.HemisphereLight(0xffffff, 0x475569, 0.8); scene.add(amb);
     const sun = new THREE.DirectionalLight(0xffffff, 1.0); sun.position.set(20, 50, -30); scene.add(sun);
-    const water = new THREE.Mesh(new THREE.PlaneGeometry(400, 1200, 80, 200), new THREE.MeshPhongMaterial({ color: 0x006994, emissive: 0x001e33, specular: 0x00a8f3, shininess: 80, flatShading: true }));
+
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(400, 1200, 80, 200),
+      new THREE.MeshPhongMaterial({ color: 0x006994, emissive: 0x001e33, specular: 0x00a8f3, shininess: 80, flatShading: true })
+    );
     water.rotation.x = -Math.PI/2; water.position.z = -400; scene.add(water);
+
     const rainCount = 12000; const rainGeo = new THREE.BufferGeometry(); const rainPos = new Float32Array(rainCount * 3);
     for(let i=0; i<rainCount*3; i+=3) { rainPos[i] = Math.random()*400-200; rainPos[i+1] = Math.random()*400-100; rainPos[i+2] = Math.random()*400-300; }
     rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
@@ -313,18 +412,22 @@
       const worldGroup = new THREE.Group();
       for(let z=10; z > -400; z -= 15) {
         if(Math.random() > 0.4) {
-           const xPos = (Math.random() > 0.5 ? 1 : -1) * (18 + Math.random() * 20);
-           if(Math.random() > 0.5) {
-             const island = new THREE.Group();
-             const base = new THREE.Mesh(new THREE.SphereGeometry(8, 16, 8), new THREE.MeshLambertMaterial({color: 0x388e3c})); base.scale.y = 0.3; base.position.y = -1; 
-             const rock = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 5), new THREE.MeshLambertMaterial({color: 0x78909c})); rock.position.y = 2; 
-             island.add(base); island.add(rock); island.position.set(xPos, 0, z); worldGroup.add(island);
-           } else {
-             const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3), new THREE.MeshLambertMaterial({color: 0x546e7a})); rock.position.set(xPos, 0, z); worldGroup.add(rock);
-           }
-           if(Math.random() > 0.8) {
-              const chest = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 0.6), new THREE.MeshStandardMaterial({color: 0xffb300, roughness: 0.4})); chest.position.set(xPos*0.5, 0.4, z+5); worldGroup.add(chest);
-           }
+          const xPos = (Math.random() > 0.5 ? 1 : -1) * (18 + Math.random() * 20);
+          if(Math.random() > 0.5) {
+            const island = new THREE.Group();
+            const base = new THREE.Mesh(new THREE.SphereGeometry(8, 16, 8), new THREE.MeshLambertMaterial({color: 0x388e3c}));
+            base.scale.y = 0.3; base.position.y = -1;
+            const rock = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 5), new THREE.MeshLambertMaterial({color: 0x78909c}));
+            rock.position.y = 2;
+            island.add(base); island.add(rock); island.position.set(xPos, 0, z); worldGroup.add(island);
+          } else {
+            const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3), new THREE.MeshLambertMaterial({color: 0x546e7a}));
+            rock.position.set(xPos, 0, z); worldGroup.add(rock);
+          }
+          if(Math.random() > 0.8) {
+            const chest = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 0.6), new THREE.MeshStandardMaterial({color: 0xffb300, roughness: 0.4}));
+            chest.position.set(xPos*0.5, 0.4, z+5); worldGroup.add(chest);
+          }
         }
       }
       scene.add(worldGroup);
@@ -334,12 +437,14 @@
     const krakenGroup = new THREE.Group();
     const tentacleMat = new THREE.MeshPhongMaterial({color: 0x7e57c2, shininess: 100});
     for(let i=0; i<4; i++) {
-       const t = new THREE.Mesh(new THREE.ConeGeometry(0.6, 12, 8), tentacleMat);
-       t.position.set((Math.random()-0.5)*15, -6, (Math.random()-0.5)*15); t.rotation.z = (Math.random()-0.5); krakenGroup.add(t);
+      const t = new THREE.Mesh(new THREE.ConeGeometry(0.6, 12, 8), tentacleMat);
+      t.position.set((Math.random()-0.5)*15, -6, (Math.random()-0.5)*15);
+      t.rotation.z = (Math.random()-0.5);
+      krakenGroup.add(t);
     }
     scene.add(krakenGroup); krakenGroup.visible = false;
 
-    // --- EXPLOSION ---
+    // Explosion
     const particlesGeo = new THREE.BufferGeometry(); const particlesCnt = 200; const pPos = new Float32Array(particlesCnt * 3); const pVel = [];
     particlesGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
     const particlesMat = new THREE.PointsMaterial({color: 0xffaa00, size: 2.0, transparent:true});
@@ -347,37 +452,49 @@
     let explosionActive = false;
 
     function triggerExplosion(pos) {
-       explosionSystem.position.copy(pos); explosionSystem.position.y += 2; explosionSystem.visible = true; explosionActive = true;
-       for(let i=0; i<particlesCnt; i++) { pPos[i*3] = 0; pPos[i*3+1] = 0; pPos[i*3+2] = 0; pVel[i] = new THREE.Vector3((Math.random()-.5)*3, (Math.random()-.5)*3, (Math.random()-.5)*3); }
-       setTimeout(() => { explosionActive = false; explosionSystem.visible = false; }, 1000);
+      explosionSystem.position.copy(pos); explosionSystem.position.y += 2; explosionSystem.visible = true; explosionActive = true;
+      for(let i=0; i<particlesCnt; i++) {
+        pPos[i*3] = 0; pPos[i*3+1] = 0; pPos[i*3+2] = 0;
+        pVel[i] = new THREE.Vector3((Math.random()-.5)*3, (Math.random()-.5)*3, (Math.random()-.5)*3);
+      }
+      setTimeout(() => { explosionActive = false; explosionSystem.visible = false; }, 1000);
     }
 
-    function createBoat(colorHex, isRival = false) {
-      const g = new THREE.Group(); const wood = new THREE.MeshLambertMaterial({ color: 0x3e2723 }); const sailColor = colorHex; 
+    function createBoat(colorHex) {
+      const g = new THREE.Group();
+      const wood = new THREE.MeshLambertMaterial({ color: 0x3e2723 });
       const hull = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.6, 2.8), wood); hull.position.y = 0.3; g.add(hull);
       const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.0), wood); cabin.position.set(0, 0.8, 0.8); g.add(cabin);
       const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.5), new THREE.MeshLambertMaterial({color:0x5d4037})); mast.position.set(0, 2, 0); g.add(mast);
-      const sailMat = new THREE.MeshStandardMaterial({color: sailColor, emissive: sailColor, emissiveIntensity: 0.6, side:THREE.DoubleSide});
+
+      const sailMat = new THREE.MeshStandardMaterial({color: colorHex, emissive: colorHex, emissiveIntensity: 0.6, side:THREE.DoubleSide});
       const sail = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.0), sailMat); sail.position.set(0, 2.2, 0.2); sail.rotation.x=0.1; g.add(sail);
-      const light = new THREE.PointLight(sailColor, 3, 15); light.position.set(0, 2, 0); g.add(light);
+
+      const light = new THREE.PointLight(colorHex, 3, 15); light.position.set(0, 2, 0); g.add(light);
+
       const shieldGeo = new THREE.SphereGeometry(2.5, 16, 16);
       const shieldMat = new THREE.MeshPhongMaterial({color: 0x00ffff, transparent: true, opacity: 0.3, side: THREE.DoubleSide});
       const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat); shieldMesh.name = "shieldMesh"; shieldMesh.visible = false; g.add(shieldMesh);
+
       return g;
     }
 
     let myBoat = createBoat(0xffffff); scene.add(myBoat);
     const rivals = []; const rivalLabels = [];
     for(let i=0; i<4; i++) {
-       const boat = createBoat(0x999999, true); boat.position.y = -50; scene.add(boat); rivals.push(boat);
-       const lbl = document.createElement('div'); lbl.className = 'boat-label label-rival'; ui.hud.labels.appendChild(lbl); rivalLabels.push(lbl);
+      const boat = createBoat(0x999999); boat.position.y = -50; scene.add(boat); rivals.push(boat);
+      const lbl = document.createElement('div'); lbl.className = 'boat-label label-rival'; ui.hud.labels.appendChild(lbl); rivalLabels.push(lbl);
     }
     const labelMe = document.createElement('div'); labelMe.className = 'boat-label label-me'; ui.hud.labels.appendChild(labelMe);
 
-    // --- HELPER FUNCTIONS ---
+    // ---- HELPERS ----
     function toSafeLives(v){ const n = Number(v); return !Number.isFinite(n) ? 3 : Math.max(0, Math.floor(n)); }
     function toSafeProgress(v){ const n = Number(v); return !Number.isFinite(n) ? 0 : Math.max(0, Math.min(TOTAL_QUESTIONS, Math.floor(n))); }
-    
+    function medalForRank(rank){ if(rank===1) return "🥇"; if(rank===2) return "🥈"; if(rank===3) return "🥉"; return "🏴‍☠️"; }
+    function escapeHtml(str){ return String(str ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+    function shuffle(a){ for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function switchScreen(id){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); ui.screens[id].classList.add('active'); }
+
     function applyMyBoatAppearance(){
       scene.remove(myBoat);
       myBoat = createBoat(state.teamColor);
@@ -386,37 +503,77 @@
       if(sMesh) sMesh.visible = !!state.shield;
     }
 
+    // ---- TRIANGLE DRAW ----
+    function drawTriangle(data) {
+      const ctx = ui.hud.canvas.getContext('2d');
+      ctx.clearRect(0,0,320,200);
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "14px Arial";
+
+      // Triángulo rectángulo fijo (base horizontal y cateto vertical)
+      ctx.beginPath();
+      ctx.moveTo(40, 170);   // base izquierda
+      ctx.lineTo(280, 170);  // base derecha
+      ctx.lineTo(280, 30);   // vértice superior derecho
+      ctx.closePath();
+      ctx.stroke();
+
+      // Ángulo marcado
+      if(data.angle) {
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText("∠" + data.angle, 15, 175);
+        ctx.fillStyle = "#ffffff";
+      }
+
+      // Etiquetas numéricas:
+      // Base (adyacente) debajo
+      ctx.fillText(String(data.ady), 160, 190);
+      // Cateto vertical (opuesto) a la derecha
+      ctx.fillText(String(data.op), 290, 100);
+      // Hipotenusa (diagonal)
+      ctx.fillText(String(data.hip), 140, 90);
+    }
+
+    // ---- SESSION RESUME ----
     async function tryResumeSession(){
       const savedRoom = localStorage.getItem("pirates_room");
       const savedTeamId = localStorage.getItem("pirates_team");
       if(!savedRoom || !savedTeamId) return false;
+
       ui.inputs.room.value = savedRoom;
       const teamRef = ref(db, `rooms/${savedRoom}/teams/${savedTeamId}`);
       const teamSnap = await get(teamRef);
       if(!teamSnap.exists()){ localStorage.removeItem("pirates_team"); return false; }
-      
+
       const t = teamSnap.val();
       state.roomCode = savedRoom; state.teamId = savedTeamId;
       state.teamName = t.teamName || ""; state.teamColor = (typeof t.color === "number") ? t.color : 0xffffff;
-      state.lives = toSafeLives(t.lives ?? 3); state.qIdx = toSafeProgress(t.progress ?? 0);
-      state.approved = !!t.approved; state.finishRank = (t.finishRank ? Number(t.finishRank) : null);
-      
+      state.lives = toSafeLives(t.lives ?? 3);
+      state.qIdx = toSafeProgress(t.progress ?? 0);
+      state.approved = !!t.approved;
+      state.finishRank = (t.finishRank ? Number(t.finishRank) : null);
+
       applyMyBoatAppearance();
+
       ui.wait.team.textContent = state.teamName;
       ui.wait.team.style.color = '#' + state.teamColor.toString(16).padStart(6,'0');
       labelMe.textContent = state.teamName;
       labelMe.style.borderColor = '#' + state.teamColor.toString(16).padStart(6,'0');
-      
+
       switchScreen('waiting');
       startListener();
       return true;
     }
 
-    // --- LOGIC ---
-    let amIApproved = false; 
+    // ---- MAIN LOGIC ----
+    let amIApproved = false;
     let detachStarted = false;
 
     await signInAnonymously(auth);
+
     const resumed = await tryResumeSession();
     if(!resumed){
       const savedRoom = localStorage.getItem("pirates_room");
@@ -452,25 +609,40 @@
         const tx = await runTransaction(idxRef, (c) => (c||0)+1);
         const idx = (tx.snapshot.val()||1)-1;
         const teamInfo = PIRATE_DATA[idx % PIRATE_DATA.length];
-        
+
         const tRef = push(ref(db, `rooms/${code}/teams`));
         await set(tRef, {
-          teamName: teamInfo.name, color: teamInfo.color, members: [m1, m2 || ""], approved: false,
-          status: 'pending', progress: 0, lives: 3, joinedAt: serverTimestamp()
+          teamName: teamInfo.name,
+          color: teamInfo.color,
+          members: [m1, m2 || ""],
+          approved: false,
+          status: 'pending',
+          progress: 0,
+          lives: 3,
+          joinedAt: serverTimestamp()
         });
 
-        state.roomCode = code; state.teamId = tRef.key; state.teamName = teamInfo.name; state.teamColor = teamInfo.color;
+        state.roomCode = code; state.teamId = tRef.key;
+        state.teamName = teamInfo.name; state.teamColor = teamInfo.color;
         state.lives = 3; state.qIdx = 0; state.approved = false; state.finishRank = null;
         state.started = false; state.finished = false; state.isDead = false; state.podiumShown = false; state.shield = false;
 
-        localStorage.setItem("pirates_room", code); localStorage.setItem("pirates_team", state.teamId);
+        localStorage.setItem("pirates_room", code);
+        localStorage.setItem("pirates_team", state.teamId);
+
         applyMyBoatAppearance();
-        labelMe.textContent = teamInfo.name; labelMe.style.borderColor = '#' + teamInfo.color.toString(16).padStart(6,'0');
-        ui.wait.team.textContent = teamInfo.name; ui.wait.team.style.color = '#' + teamInfo.color.toString(16).padStart(6,'0');
-        
+        labelMe.textContent = teamInfo.name;
+        labelMe.style.borderColor = '#' + teamInfo.color.toString(16).padStart(6,'0');
+
+        ui.wait.team.textContent = teamInfo.name;
+        ui.wait.team.style.color = '#' + teamInfo.color.toString(16).padStart(6,'0');
+
         switchScreen('waiting');
         startListener();
-      } catch(e) { ui.inputs.error.textContent = e?.message || String(e); ui.inputs.joinBtn.disabled = false; }
+      } catch(e) {
+        ui.inputs.error.textContent = e?.message || String(e);
+        ui.inputs.joinBtn.disabled = false;
+      }
     };
 
     function startListener() {
@@ -478,30 +650,36 @@
       detachStarted = true;
 
       onValue(ref(db, `rooms/${state.roomCode}/status`), snap => {
-         state.roomStatus = snap.val() || 'lobby';
-         if(state.roomStatus === 'lobby'){
-           ui.wait.txt.textContent = state.approved ? "¡Aprobado! Esperando inicio..." : "Esperando aprobación del capitán...";
-         }
-         // Si el juego corre, estoy aprobado, y NO he iniciado...
-         if(state.roomStatus === 'running' && amIApproved && !state.started){
-             // Verificamos si ya tenía progreso para saltar la cuenta regresiva
-             const wasPlaying = (state.qIdx > 0); 
-             if(wasPlaying) startGame();
-             else startCountdownThenGame();
-         }
+        state.roomStatus = snap.val() || 'lobby';
+
+        if(state.roomStatus === 'lobby'){
+          ui.wait.txt.textContent = state.approved ? "¡Aprobado! Esperando inicio..." : "Esperando aprobación del capitán...";
+        }
+
+        if(state.roomStatus === 'running' && amIApproved && !state.started){
+          const wasPlaying = (state.qIdx > 0);
+          if(wasPlaying) startGame();
+          else startCountdownThenGame();
+        }
       });
 
       onValue(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), snap => {
-        if(!snap.exists()) { 
-           localStorage.removeItem("pirates_team"); state.teamId=null; state.started=false; state.finished=false; state.approved=false;
-           switchScreen('entry'); ui.inputs.joinBtn.disabled=false; ui.inputs.error.textContent="Tu equipo ya no existe. Vuelve a entrar."; return; 
+        if(!snap.exists()) {
+          localStorage.removeItem("pirates_team");
+          state.teamId=null; state.started=false; state.finished=false; state.approved=false;
+          switchScreen('entry');
+          ui.inputs.joinBtn.disabled=false;
+          ui.inputs.error.textContent="Tu equipo ya no existe. Vuelve a entrar.";
+          return;
         }
-        const tData = snap.val(); 
+
+        const tData = snap.val();
         state.approved = !!tData.approved;
         amIApproved = state.approved;
-        
+
         state.lives = toSafeLives(tData.lives ?? state.lives);
         state.qIdx = toSafeProgress(tData.progress ?? state.qIdx);
+
         ui.hud.life.textContent = state.lives;
         ui.hud.stage.textContent = `${Math.min(state.qIdx, TOTAL_QUESTIONS)}/${TOTAL_QUESTIONS}`;
 
@@ -511,319 +689,560 @@
         else if(state.roomStatus === 'lobby') ui.wait.txt.textContent = "¡Aprobado! Esperando inicio...";
 
         if(state.approved && state.roomStatus === 'running' && !state.started){
-            const wasPlaying = (tData.status === 'playing' || state.qIdx > 0);
-            if(wasPlaying) startGame();
-            else startCountdownThenGame();
+          const wasPlaying = (tData.status === 'playing' || state.qIdx > 0);
+          if(wasPlaying) startGame();
+          else startCountdownThenGame();
         }
-        
-        const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = !!state.shield;
 
+        const sMesh = myBoat.getObjectByName("shieldMesh");
+        if(sMesh) sMesh.visible = !!state.shield;
+
+        // Effects
         if (tData.effects) {
-           const now = Date.now();
-           if (tData.effects.incomingAttack) {
-              if (state.shield || state.inventory.shield > 0) {
-                 if (state.shield) {
-                    update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null);
-                    ui.hud.msg.textContent = "¡ESCUDO AUTOMÁTICO!";
-                    state.shield = false; 
-                    if(sMesh) sMesh.visible = false;
-                    updateUI();
-                 } else if (!state.incomingAttack) {
-                    state.incomingAttack = true; showIncomingAlert(); 
-                 }
-              } 
-              else { 
-                 triggerExplosion(myBoat.position);
-                 update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null });
+          const now = Date.now();
+
+          if (tData.effects.incomingAttack) {
+            if (state.shield || state.inventory.shield > 0) {
+              if (state.shield) {
+                update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null);
+                ui.hud.msg.textContent = "¡ESCUDO AUTOMÁTICO!";
+                state.shield = false;
+                if(sMesh) sMesh.visible = false;
+                updateUI();
+              } else if (!state.incomingAttack) {
+                state.incomingAttack = true;
+                showIncomingAlert();
               }
-           }
-           
-           // --- KRAKEN MANUAL CHECK ---
-           if (tData.effects.krakenHit && (now - tData.effects.krakenHit < 11000) && !state.frozen) {
-               const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
-               if(remaining > 0) triggerAttack('kraken', remaining);
-           }
-           // --- STANDARD FREEZE ---
-           else if (Number(tData.effects.frozenUntil || 0) > now && !state.frozen) {
-              const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
-              if(remaining > 0) triggerAttack('freeze', remaining);
-           }
+            } else {
+              triggerExplosion(myBoat.position);
+              update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null });
+            }
+          }
+
+          // Kraken manual
+          if (tData.effects.krakenHit && (now - tData.effects.krakenHit < 11000) && !state.frozen) {
+            const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
+            if(remaining > 0) triggerAttack('kraken', remaining);
+          }
+          // Freeze standard
+          else if (Number(tData.effects.frozenUntil || 0) > now && !state.frozen) {
+            const remaining = Math.ceil((tData.effects.frozenUntil - now) / 1000);
+            if(remaining > 0) triggerAttack('freeze', remaining);
+          }
         }
       });
 
       onValue(ref(db, `rooms/${state.roomCode}/teams`), snap => {
         const rData = snap.val();
         if(!rData) return;
-        const allTeams = Object.entries(rData).map(([k,v]) => ({id:k, ...v})).sort((a,b)=>(Number(b.progress||0)-Number(a.progress||0)));
+
+        const allTeams = Object.entries(rData)
+          .map(([k,v]) => ({id:k, ...v}))
+          .sort((a,b)=>(Number(b.progress||0)-Number(a.progress||0)));
+
         state.rivalsData = allTeams;
         const myIdx = allTeams.findIndex(t => t.id === state.teamId);
-        
-        const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = !!state.shield;
 
-        // Auto Random Kraken
-        if(state.started && !state.finished && !state.isDead && !state.frozen && myIdx < 3 && !state.shield && !state.incomingAttack) { if(Math.random() < 0.003) triggerAttack('kraken'); }
-        update3D(state.qIdx, allTeams, myIdx); 
+        // Auto random kraken (solo local)
+        if(state.started && !state.finished && !state.isDead && !state.frozen && myIdx < 3 && !state.shield && !state.incomingAttack) {
+          if(Math.random() < 0.003) triggerAttack('kraken');
+        }
+
+        update3D(state.qIdx, allTeams, myIdx);
         if(state.roomStatus === 'finished') showPodiumByRank(allTeams);
       });
     }
 
     function showIncomingAlert() {
-       ui.overlays.incoming.style.display = 'flex'; let t = 3; ui.overlays.incTimer.textContent = t;
-       const timer = setInterval(() => {
-          t--; ui.overlays.incTimer.textContent = t;
-          if (t <= 0 || !state.incomingAttack) { clearInterval(timer); if (state.incomingAttack) { ui.overlays.incoming.style.display = 'none'; state.incomingAttack = false; triggerExplosion(myBoat.position); update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null }); } }
-       }, 1000);
-       ui.overlays.btnCounter.onclick = () => { 
-          if (state.inventory.shield > 0) { 
-             state.inventory.shield--; updateUI(); state.incomingAttack = false; 
-             ui.overlays.incoming.style.display = 'none'; ui.hud.msg.textContent = "¡ESCUDO DEFENDIÓ!"; ui.hud.msg.style.color = "#34d399"; 
-             update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null); 
-          } 
-       };
+      ui.overlays.incoming.style.display = 'flex';
+      let t = 3; ui.overlays.incTimer.textContent = t;
+
+      const timer = setInterval(() => {
+        t--; ui.overlays.incTimer.textContent = t;
+        if (t <= 0 || !state.incomingAttack) {
+          clearInterval(timer);
+          if (state.incomingAttack) {
+            ui.overlays.incoming.style.display = 'none';
+            state.incomingAttack = false;
+            triggerExplosion(myBoat.position);
+            update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: Date.now() + 10000, incomingAttack: null });
+          }
+        }
+      }, 1000);
+
+      ui.overlays.btnCounter.onclick = () => {
+        if (state.inventory.shield > 0) {
+          state.inventory.shield--;
+          updateUI();
+          state.incomingAttack = false;
+          ui.overlays.incoming.style.display = 'none';
+          ui.hud.msg.textContent = "¡ESCUDO DEFENDIÓ!";
+          ui.hud.msg.style.color = "#34d399";
+          update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects/incomingAttack`), null);
+        }
+      };
     }
 
     function triggerAttack(type, duration) {
-      if(state.isDead || state.finished) return; state.frozen = true; let overlay, timerEl, dur = duration || ((type === 'freeze') ? 10 : 5);
-      if(type === 'kraken') { overlay = ui.overlays.kraken; timerEl = ui.overlays.kTimer; krakenGroup.visible = true; krakenGroup.position.set(0, 0, myBoat.position.z - 8); } else { overlay = ui.overlays.frozen; timerEl = ui.overlays.fTimer; }
-      overlay.style.display = 'flex'; timerEl.textContent = dur;
-      const t = setInterval(() => { dur--; timerEl.textContent = dur; if(dur <= 0) { clearInterval(t); overlay.style.display = 'none'; state.frozen = false; if(type === 'kraken') krakenGroup.visible = false; if(type === 'freeze') update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: 0, immuneUntil: Date.now() + 20000 }); } }, 1000);
+      if(state.isDead || state.finished) return;
+      state.frozen = true;
+
+      let overlay, timerEl;
+      let dur = duration || ((type === 'freeze') ? 10 : 5);
+
+      if(type === 'kraken') {
+        overlay = ui.overlays.kraken; timerEl = ui.overlays.kTimer;
+        krakenGroup.visible = true;
+        krakenGroup.position.set(0, 0, myBoat.position.z - 8);
+      } else {
+        overlay = ui.overlays.frozen; timerEl = ui.overlays.fTimer;
+      }
+
+      overlay.style.display = 'flex';
+      timerEl.textContent = dur;
+
+      const t = setInterval(() => {
+        dur--;
+        timerEl.textContent = dur;
+        if(dur <= 0) {
+          clearInterval(t);
+          overlay.style.display = 'none';
+          state.frozen = false;
+          if(type === 'kraken') krakenGroup.visible = false;
+          if(type === 'freeze') {
+            update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}/effects`), { frozenUntil: 0, immuneUntil: Date.now() + 20000 });
+          }
+        }
+      }, 1000);
     }
 
     async function startCountdownThenGame(){
-       if(state.countdownRunning || state.started) return;
-       state.countdownRunning = true;
-       ui.overlays.start.style.display = 'flex'; let t = 5; ui.overlays.startTimer.textContent = String(t);
-       const timer = setInterval(() => { t--; ui.overlays.startTimer.textContent = String(t); if(t <= 0){ clearInterval(timer); ui.overlays.start.style.display = 'none'; state.countdownRunning = false; if(!state.started) startGame(); } }, 1000);
+      if(state.countdownRunning || state.started) return;
+      state.countdownRunning = true;
+
+      ui.overlays.start.style.display = 'flex';
+      let t = 5;
+      ui.overlays.startTimer.textContent = String(t);
+
+      const timer = setInterval(() => {
+        t--;
+        ui.overlays.startTimer.textContent = String(t);
+        if(t <= 0){
+          clearInterval(timer);
+          ui.overlays.start.style.display = 'none';
+          state.countdownRunning = false;
+          if(!state.started) startGame();
+        }
+      }, 1000);
     }
 
     function startGame() {
       state.started = true;
-      state.questions = shuffle([...QUESTIONS_DB]).map(q => { if(q.type === 'choice') return { ...q, choices: q.choices.map((txt,i)=>({txt,i})).sort(()=>Math.random()-.5), correctOriginal: q.answer }; else return { ...q, blocks: shuffle(q.blocks) }; });
+
+      // Shuffle questions + shuffle choices and recompute correct index
+      state.questions = shuffle([...QUESTIONS_DB]).map(q => {
+        const choicesObj = q.choices.map((txt, i) => ({ txt, i }));
+        const shuffledChoices = choicesObj.sort(() => Math.random() - 0.5);
+        const newAnswer = shuffledChoices.findIndex(c => c.i === q.answer);
+        return { ...q, choices: shuffledChoices, answer: newAnswer };
+      });
+
       state.qIdx = toSafeProgress(state.qIdx);
-      switchScreen('hud'); renderQuestion();
-      update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status: 'playing', progress: state.qIdx, lives: toSafeLives(state.lives) });
+      switchScreen('hud');
+      renderQuestion();
+
+      update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), {
+        status: 'playing',
+        progress: state.qIdx,
+        lives: toSafeLives(state.lives)
+      });
     }
 
     function renderQuestion() {
-      if(state.qIdx >= state.questions.length) { 
-         state.finished = true;
-         update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status:'finished', progress: TOTAL_QUESTIONS });
-         const medal = state.finishRank ? medalForRank(state.finishRank) : "";
-         ui.hud.qText.textContent = state.finishRank ? `¡META ALCANZADA! Tu lugar: #${state.finishRank} ${medal}` : "¡META ALCANZADA! Esperando tu lugar...";
-         ui.hud.opts.innerHTML = ""; ui.hud.builder.style.display = 'none'; updateUI(); return; 
+      if(state.qIdx >= state.questions.length) {
+        state.finished = true;
+        update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status:'finished', progress: TOTAL_QUESTIONS });
+
+        const medal = state.finishRank ? medalForRank(state.finishRank) : "";
+        ui.hud.qText.textContent = state.finishRank
+          ? `¡META ALCANZADA! Tu lugar: #${state.finishRank} ${medal}`
+          : "¡META ALCANZADA! Esperando tu lugar...";
+
+        ui.hud.opts.innerHTML = "";
+        ui.hud.triWrap.style.display = "none";
+        updateUI();
+        return;
       }
+
       const q = state.questions[state.qIdx];
-      ui.hud.stage.textContent = `${state.qIdx}/${state.questions.length}`; ui.hud.life.textContent = state.lives; ui.hud.qText.textContent = q.prompt; ui.hud.opts.innerHTML = ""; ui.hud.builder.style.display = 'none';
-      if(q.type === 'choice') {
-         ui.hud.opts.style.display = 'flex';
-         q.choices.forEach(c => { const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.textContent = c.txt; btn.dataset.idx = c.i; btn.onclick = () => handleAnswer(c.i === q.correctOriginal); ui.hud.opts.appendChild(btn); });
+      ui.hud.stage.textContent = `${state.qIdx}/${state.questions.length}`;
+      ui.hud.life.textContent = state.lives;
+
+      ui.hud.msg.textContent = "";
+      ui.hud.msg.style.color = "var(--neon-gold)";
+
+      ui.hud.qText.textContent = q.prompt;
+      ui.hud.opts.innerHTML = "";
+
+      if(q.data) {
+        ui.hud.triWrap.style.display = "block";
+        drawTriangle(q.data);
       } else {
-         ui.hud.opts.style.display = 'none'; ui.hud.builder.style.display = 'flex'; drawTriangle(q.data); renderBuilder(q);
+        ui.hud.triWrap.style.display = "none";
       }
+
+      q.choices.forEach((c, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = c.txt;
+        btn.onclick = () => handleAnswer(idx === q.answer);
+        ui.hud.opts.appendChild(btn);
+      });
+
       updateUI();
-    }
-
-    function drawTriangle(data) {
-       const ctx = ui.hud.canvas.getContext('2d'); ctx.clearRect(0,0,320,200); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.fillStyle = "#ffffff"; ctx.font = "14px Arial";
-       ctx.beginPath(); ctx.moveTo(40, 170); ctx.lineTo(280, 170); ctx.lineTo(280, 30); ctx.closePath(); ctx.stroke();
-       if(data.angle) { ctx.fillStyle = "#fbbf24"; ctx.fillText("∠" + data.angle, 15, 175); ctx.fillStyle = "#ffffff"; } 
-       ctx.fillText(data.ady, 160, 190); ctx.fillText(data.op, 290, 100); ctx.fillText(data.hip, 140, 90); 
-    }
-
-    // --- DRAG AND DROP ---
-    function renderBuilder(q) {
-       state.slotsFilled = { func:null, angle:null, num:null, den:null };
-       Object.values(ui.hud.slots).forEach(el => { el.innerHTML = ""; el.classList.remove('filled'); el.classList.remove('drag-over'); setupSlotEvents(el); });
-       ui.hud.blockPool.innerHTML = "";
-       ui.hud.blockPool.ondragover = (e) => { e.preventDefault(); ui.hud.blockPool.classList.add('drag-over'); };
-       ui.hud.blockPool.ondragleave = (e) => { ui.hud.blockPool.classList.remove('drag-over'); };
-       ui.hud.blockPool.ondrop = (e) => { 
-          e.preventDefault(); ui.hud.blockPool.classList.remove('drag-over');
-          if(state.draggedItem) { 
-             if(state.draggedItem.parentNode.classList.contains('slot')) {
-                state.draggedItem.parentNode.classList.remove('filled');
-                const slotType = state.draggedItem.parentNode.getAttribute('data-type');
-                if(slotType) state.slotsFilled[slotType] = null;
-             }
-             ui.hud.blockPool.appendChild(state.draggedItem); state.draggedItem = null;
-          }
-       };
-       q.blocks.forEach(txt => { const b = createBlock(txt); ui.hud.blockPool.appendChild(b); });
-       ui.hud.submitBuild.onclick = () => {
-          const sol = q.solution; const user = state.slotsFilled;
-          const ok = (user.func === sol.f && user.angle === sol.a && user.num === sol.n && user.den === sol.d);
-          handleAnswer(ok);
-       };
-    }
-
-    function setupSlotEvents(slot) {
-       slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
-       slot.ondragleave = (e) => { slot.classList.remove('drag-over'); };
-       slot.ondrop = (e) => {
-          e.preventDefault(); slot.classList.remove('drag-over');
-          if (state.draggedItem) {
-             if (slot.children.length > 0) { const existing = slot.children[0]; ui.hud.blockPool.appendChild(existing); }
-             slot.appendChild(state.draggedItem); slot.classList.add('filled');
-             const type = slot.getAttribute('data-type'); state.slotsFilled[type] = state.draggedItem.textContent; state.draggedItem = null;
-          }
-       };
-       slot.onclick = () => {
-          if(slot.children.length > 0) {
-             const item = slot.children[0]; ui.hud.blockPool.appendChild(item); slot.classList.remove('filled');
-             const type = slot.getAttribute('data-type'); state.slotsFilled[type] = null;
-          }
-       }
-    }
-
-    function createBlock(txt) {
-       const d = document.createElement('div'); d.className = 'math-block'; d.textContent = txt; d.draggable = true;
-       d.ondragstart = (e) => { state.draggedItem = d; e.dataTransfer.effectAllowed = 'move'; d.classList.add('dragging'); };
-       d.ondragend = (e) => { d.classList.remove('dragging'); };
-       return d;
     }
 
     async function handleAnswer(isCorrect) {
-      if(state.frozen || state.finished || state.isDead || state.incomingAttack) return; 
+      if(state.frozen || state.finished || state.isDead || state.incomingAttack) return;
+
       if(isCorrect) {
-        ui.hud.msg.textContent = "¡CORRECTO!"; ui.hud.msg.style.color = "#34d399";
-        const jump = state.tailwind ? 2 : 1; state.tailwind = false; state.qIdx += jump;
-        const total = state.inventory.cannon + state.inventory.shield + state.inventory.parrot + state.inventory.cut + state.inventory.heal + state.inventory.wind;
-        if(total < 4) {
-           const r = Math.random();
-           if(r<0.15) state.inventory.cannon++; else if(r<0.30) state.inventory.shield++; else if(r<0.45) state.inventory.parrot++; 
-           else if(r<0.60) state.inventory.cut++; 
-           else if(r<0.80) { if (state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
-           else { if (state.qIdx < 10) state.inventory.wind++; else if(state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
-           ui.hud.msg.textContent = "¡OBJETO OBTENIDO!"; ui.hud.msg.style.color = "var(--neon-gold)";
+        ui.hud.msg.textContent = "¡CORRECTO!";
+        ui.hud.msg.style.color = "#34d399";
+
+        const jump = state.tailwind ? 2 : 1;
+        state.tailwind = false;
+        state.qIdx += jump;
+
+        const totalInv =
+          state.inventory.cannon + state.inventory.shield + state.inventory.parrot +
+          state.inventory.cut + state.inventory.heal + state.inventory.wind;
+
+        if(totalInv < 4) {
+          const r = Math.random();
+          if(r<0.15) state.inventory.cannon++;
+          else if(r<0.30) state.inventory.shield++;
+          else if(r<0.45) state.inventory.parrot++;
+          else if(r<0.60) state.inventory.cut++;
+          else if(r<0.80) { if (state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
+          else { if (state.qIdx < 10) state.inventory.wind++; else if(state.lives < 3) state.inventory.heal++; else state.inventory.cut++; }
+
+          ui.hud.msg.textContent = "¡OBJETO OBTENIDO!";
+          ui.hud.msg.style.color = "var(--neon-gold)";
         }
-        await update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { progress: Math.min(state.qIdx, TOTAL_QUESTIONS), lives: toSafeLives(state.lives) });
+
+        await update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), {
+          progress: Math.min(state.qIdx, TOTAL_QUESTIONS),
+          lives: toSafeLives(state.lives)
+        });
+
         renderQuestion();
       } else {
-        state.tailwind = false; ui.hud.msg.textContent = "¡FALLO!"; ui.hud.msg.style.color = "#f43f5e"; 
+        state.tailwind = false;
+        ui.hud.msg.textContent = "¡FALLO!";
+        ui.hud.msg.style.color = "#f43f5e";
+
         state.lives = Math.max(0, state.lives - 1);
+
         await update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { lives: toSafeLives(state.lives) });
-        if(state.lives <= 0) { state.isDead = true; ui.overlays.gameover.style.display = 'flex'; update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status: 'dead' }); }
+
+        if(state.lives <= 0) {
+          state.isDead = true;
+          ui.overlays.gameover.style.display = 'flex';
+          update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { status: 'dead' });
+        }
+
         ui.hud.life.textContent = state.lives;
       }
+
       updateUI();
     }
 
+    // ---- PERKS ----
     ui.overlays.cancelTargetBtn.onclick = () => { ui.overlays.targeting.style.display = 'none'; };
 
     ui.perks.btnCannon.onclick = () => {
-       if(state.inventory.cannon > 0) {
-          ui.overlays.targeting.style.display = 'flex'; ui.overlays.targets.innerHTML = ""; const now = Date.now();
-          state.rivalsData.forEach(t => {
-             if(t.id === state.teamId) return;
-             const isImmune = (Number(t.effects?.immuneUntil||0) > now) || (Number(t.effects?.frozenUntil||0) > now);
-             const btn = document.createElement('button'); btn.className = 'target-btn';
-             btn.innerHTML = `<span>${t.teamName}</span> <span class="target-status">${isImmune ? '🛡️ REPARANDO' : '🎯 DISPONIBLE'}</span>`;
-             if(isImmune) btn.disabled = true;
-             btn.onclick = () => fireCannon(t.id, t.teamName); ui.overlays.targets.appendChild(btn);
-          });
-       }
+      if(state.inventory.cannon > 0) {
+        ui.overlays.targeting.style.display = 'flex';
+        ui.overlays.targets.innerHTML = "";
+        const now = Date.now();
+
+        state.rivalsData.forEach(t => {
+          if(t.id === state.teamId) return;
+          const isImmune = (Number(t.effects?.immuneUntil||0) > now) || (Number(t.effects?.frozenUntil||0) > now);
+          const btn = document.createElement('button');
+          btn.className = 'target-btn';
+          btn.innerHTML = `<span>${escapeHtml(t.teamName||"Equipo")}</span> <span class="target-status">${isImmune ? '🛡️ REPARANDO' : '🎯 DISPONIBLE'}</span>`;
+          if(isImmune) btn.disabled = true;
+          btn.onclick = () => fireCannon(t.id, t.teamName);
+          ui.overlays.targets.appendChild(btn);
+        });
+      }
     };
 
     function fireCannon(targetId, targetName) {
-        state.inventory.cannon--;
-        update(ref(db, `rooms/${state.roomCode}/teams/${targetId}/effects/incomingAttack`), { from: state.teamName, timestamp: Date.now() });
-        ui.hud.msg.textContent = `FUEGO A ${targetName}`; ui.overlays.targeting.style.display = 'none'; updateUI();
+      state.inventory.cannon--;
+      update(ref(db, `rooms/${state.roomCode}/teams/${targetId}/effects/incomingAttack`), { from: state.teamName, timestamp: Date.now() });
+      ui.hud.msg.textContent = `FUEGO A ${targetName}`;
+      ui.overlays.targeting.style.display = 'none';
+      updateUI();
     }
 
-    ui.perks.btnShield.onclick = () => { if(state.inventory.shield > 0 && !state.shield) { state.inventory.shield--; state.shield = true; ui.hud.msg.textContent = "ESCUDO ACTIVO"; const sMesh = myBoat.getObjectByName("shieldMesh"); if(sMesh) sMesh.visible = true; updateUI(); } };
-    ui.perks.btnParrot.onclick = () => { if(state.inventory.parrot > 0 && state.questions[state.qIdx]?.type === 'choice') { state.inventory.parrot--; const q = state.questions[state.qIdx]; const btns = Array.from(ui.hud.opts.children); const correctBtn = btns.find(b => parseInt(b.dataset.idx,10) === q.correctOriginal); if(correctBtn) correctBtn.classList.add('hint'); } updateUI(); };
-    ui.perks.btn5050.onclick = () => { if(state.inventory.cut > 0 && state.questions[state.qIdx]?.type === 'choice') { state.inventory.cut--; const q = state.questions[state.qIdx]; const btns = Array.from(ui.hud.opts.children); let rem=0; btns.forEach(b => { if(parseInt(b.dataset.idx,10) !== q.correctOriginal && rem<2) { b.classList.add('hidden'); rem++; } }); } updateUI(); };
-    ui.perks.btnHeal.onclick = () => { if(state.inventory.heal > 0 && state.lives < 3) { state.inventory.heal--; state.lives++; ui.hud.life.textContent = state.lives; update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { lives: toSafeLives(state.lives) }); } updateUI(); };
-    ui.perks.btnWind.onclick = () => { if(state.inventory.wind > 0 && !state.tailwind) { state.inventory.wind--; state.tailwind = true; ui.hud.msg.textContent = "VIENTO A FAVOR (x2)"; } updateUI(); };
+    ui.perks.btnShield.onclick = () => {
+      if(state.inventory.shield > 0 && !state.shield) {
+        state.inventory.shield--;
+        state.shield = true;
+        ui.hud.msg.textContent = "ESCUDO ACTIVO";
+        const sMesh = myBoat.getObjectByName("shieldMesh");
+        if(sMesh) sMesh.visible = true;
+        updateUI();
+      }
+    };
+
+    ui.perks.btnParrot.onclick = () => {
+      if(state.inventory.parrot > 0 && state.questions[state.qIdx]?.type === 'choice') {
+        state.inventory.parrot--;
+        const q = state.questions[state.qIdx];
+        const btns = Array.from(ui.hud.opts.children);
+        const correctBtn = btns[q.answer];
+        if(correctBtn) correctBtn.classList.add('hint');
+      }
+      updateUI();
+    };
+
+    ui.perks.btn5050.onclick = () => {
+      if(state.inventory.cut > 0 && state.questions[state.qIdx]?.type === 'choice') {
+        state.inventory.cut--;
+        const q = state.questions[state.qIdx];
+        const btns = Array.from(ui.hud.opts.children);
+
+        const wrongIdx = btns.map((_, i) => i).filter(i => i !== q.answer);
+        shuffle(wrongIdx);
+        wrongIdx.slice(0, 2).forEach(i => btns[i].classList.add('hidden'));
+      }
+      updateUI();
+    };
+
+    ui.perks.btnHeal.onclick = () => {
+      if(state.inventory.heal > 0 && state.lives < 3) {
+        state.inventory.heal--;
+        state.lives++;
+        ui.hud.life.textContent = state.lives;
+        update(ref(db, `rooms/${state.roomCode}/teams/${state.teamId}`), { lives: toSafeLives(state.lives) });
+      }
+      updateUI();
+    };
+
+    ui.perks.btnWind.onclick = () => {
+      if(state.inventory.wind > 0 && !state.tailwind) {
+        state.inventory.wind--;
+        state.tailwind = true;
+        ui.hud.msg.textContent = "VIENTO A FAVOR (x2)";
+      }
+      updateUI();
+    };
 
     function updateUI() {
-       ui.perks.bdgCannon.textContent = state.inventory.cannon; ui.perks.bdgShield.textContent = state.inventory.shield;
-       ui.perks.bdgParrot.textContent = state.inventory.parrot; ui.perks.bdg5050.textContent = state.inventory.cut;
-       ui.perks.bdgHeal.textContent = state.inventory.heal; ui.perks.bdgWind.textContent = state.inventory.wind;
-       
-       ui.perks.btnCannon.disabled = state.inventory.cannon <= 0; ui.perks.btnShield.disabled = state.inventory.shield <= 0 || state.shield;
-       ui.perks.btnParrot.disabled = state.inventory.parrot <= 0; ui.perks.btn5050.disabled = state.inventory.cut <= 0;
-       ui.perks.btnHeal.disabled = state.inventory.heal <= 0 || state.lives >= 3; ui.perks.btnWind.disabled = state.inventory.wind <= 0 || state.tailwind;
-       
-       ui.perks.btnShield.style.borderColor = state.shield ? "var(--neon-green)" : "transparent";
-       ui.perks.btnWind.style.borderColor = state.tailwind ? "white" : "transparent";
-       [ui.perks.btnCannon, ui.perks.btnShield, ui.perks.btnParrot, ui.perks.btn5050, ui.perks.btnHeal, ui.perks.btnWind].forEach(b => { if(!b.disabled) b.classList.add('active'); else b.classList.remove('active'); });
+      ui.hud.stage.textContent = `${Math.min(state.qIdx, TOTAL_QUESTIONS)}/${TOTAL_QUESTIONS}`;
+      ui.hud.life.textContent = state.lives;
+
+      ui.perks.bdgCannon.textContent = state.inventory.cannon;
+      ui.perks.bdgShield.textContent = state.inventory.shield;
+      ui.perks.bdgParrot.textContent = state.inventory.parrot;
+      ui.perks.bdg5050.textContent = state.inventory.cut;
+      ui.perks.bdgHeal.textContent = state.inventory.heal;
+      ui.perks.bdgWind.textContent = state.inventory.wind;
+
+      ui.perks.btnCannon.disabled = state.inventory.cannon <= 0;
+      ui.perks.btnShield.disabled = state.inventory.shield <= 0 || state.shield;
+      ui.perks.btnParrot.disabled = state.inventory.parrot <= 0;
+      ui.perks.btn5050.disabled = state.inventory.cut <= 0;
+      ui.perks.btnHeal.disabled = state.inventory.heal <= 0 || state.lives >= 3;
+      ui.perks.btnWind.disabled = state.inventory.wind <= 0 || state.tailwind;
+
+      ui.perks.btnShield.style.borderColor = state.shield ? "var(--neon-green)" : "transparent";
+      ui.perks.btnWind.style.borderColor = state.tailwind ? "white" : "transparent";
+
+      [
+        ui.perks.btnCannon, ui.perks.btnShield, ui.perks.btnParrot,
+        ui.perks.btn5050, ui.perks.btnHeal, ui.perks.btnWind
+      ].forEach(b => { if(!b.disabled) b.classList.add('active'); else b.classList.remove('active'); });
     }
 
-    function medalForRank(rank){ if(rank===1) return "🥇"; if(rank===2) return "🥈"; if(rank===3) return "🥉"; return "🏴‍☠️"; }
-
+    // ---- PODIUM ----
     function showPodiumByRank(allTeams){
-       if(state.podiumShown) return;
-       state.podiumShown = true;
-       switchScreen('podium');
-       try{ ui.audio.rain.pause(); ui.audio.wind.pause(); }catch(e){}
-       const ranked = allTeams.filter(t => t && t.approved && Number(t.finishRank || 0) > 0).sort((a,b) => Number(a.finishRank) - Number(b.finishRank));
-       ui.podium.list.innerHTML = "";
-       ranked.slice(0,3).forEach((t) => {
-         const r = Number(t.finishRank);
-         const medal = medalForRank(r);
-         const div = document.createElement('div');
-         div.className = `podium-item ${r===1?'rank-1':r===2?'rank-2':r===3?'rank-3':''}`;
-         const colorHex = '#' + (Number(t.color||0xffffff)).toString(16).padStart(6,'0');
-         div.innerHTML = `<div style="display:flex; align-items:center; gap:10px; min-width:90px;"><div style="font-size:26px;">${medal}</div><div style="font-weight:bold;">#${r}</div></div><div style="flex:1;"><div style="font-weight:bold; color:${colorHex};">${escapeHtml(t.teamName||"Equipo")}</div><div style="color:#94a3b8; font-size:12px; margin-top:2px;">${escapeHtml((t.members||[]).filter(Boolean).join(", "))}</div></div>`;
-         ui.podium.list.appendChild(div);
-       });
-       const btn = ui.podium.btn; btn.disabled = true; btn.textContent = "REGRESAR AL LOBBY"; btn.style.background = "#1e293b";
-       ui.podium.hint.textContent = "El botón se habilitará automáticamente.";
-       if(state.podiumUnlockTimer) clearTimeout(state.podiumUnlockTimer);
-       state.podiumUnlockTimer = setTimeout(() => { btn.disabled = false; btn.style.background = "#f43f5e"; ui.podium.hint.textContent = "Ya puedes cerrar."; }, 5000); // 5 sec wait
-       btn.onclick = () => { localStorage.removeItem("pirates_team"); location.reload(); };
+      if(state.podiumShown) return;
+      state.podiumShown = true;
+
+      switchScreen('podium');
+      try{ ui.audio.rain.pause(); ui.audio.wind.pause(); }catch(e){}
+
+      const ranked = allTeams
+        .filter(t => t && t.approved && Number(t.finishRank || 0) > 0)
+        .sort((a,b) => Number(a.finishRank) - Number(b.finishRank));
+
+      ui.podium.list.innerHTML = "";
+
+      ranked.slice(0,3).forEach((t) => {
+        const r = Number(t.finishRank);
+        const medal = medalForRank(r);
+        const div = document.createElement('div');
+        div.className = `podium-item ${r===1?'rank-1':r===2?'rank-2':r===3?'rank-3':''}`;
+        const colorHex = '#' + (Number(t.color||0xffffff)).toString(16).padStart(6,'0');
+
+        div.innerHTML =
+          `<div style="display:flex; align-items:center; gap:10px; min-width:90px;">
+             <div style="font-size:26px;">${medal}</div>
+             <div style="font-weight:bold;">#${r}</div>
+           </div>
+           <div style="flex:1;">
+             <div style="font-weight:bold; color:${colorHex};">${escapeHtml(t.teamName||"Equipo")}</div>
+             <div style="color:#94a3b8; font-size:12px; margin-top:2px;">${escapeHtml((t.members||[]).filter(Boolean).join(", "))}</div>
+           </div>`;
+        ui.podium.list.appendChild(div);
+      });
+
+      const btn = ui.podium.btn;
+      btn.disabled = true;
+      btn.textContent = "REGRESAR AL LOBBY";
+      btn.style.background = "#1e293b";
+      ui.podium.hint.textContent = "El botón se habilitará automáticamente.";
+
+      if(state.podiumUnlockTimer) clearTimeout(state.podiumUnlockTimer);
+      state.podiumUnlockTimer = setTimeout(() => {
+        btn.disabled = false;
+        btn.style.background = "#f43f5e";
+        ui.podium.hint.textContent = "Ya puedes cerrar.";
+      }, 5000);
+
+      btn.onclick = () => { localStorage.removeItem("pirates_team"); location.reload(); };
     }
 
-    function escapeHtml(str){ return String(str ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
-
-    function switchScreen(id){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); ui.screens[id].classList.add('active'); }
-    function shuffle(a){ for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-
-    let myTargetZ=0; const rivalTargets = [{z:-50,vis:false,x:-12,idxOffset:-2}, {z:-50,vis:false,x:-6,idxOffset:-1}, {z:50,vis:false,x:6,idxOffset:1}, {z:50,vis:false,x:12,idxOffset:2}];
+    // ---- RIVALS / 3D UPDATE ----
+    let myTargetZ=0;
+    const rivalTargets = [
+      {z:-50,vis:false,x:-12,idxOffset:-2},
+      {z:-50,vis:false,x:-6,idxOffset:-1},
+      {z:50,vis:false,x:6,idxOffset:1},
+      {z:50,vis:false,x:12,idxOffset:2}
+    ];
 
     function update3D(prog, allTeams, myIdx) {
-       myTargetZ = -(prog * 10);
-       for(let i=0; i<4; i++) {
-          const cfg = rivalTargets[i]; const n = allTeams[myIdx + cfg.idxOffset];
-          if(n) {
-             cfg.vis = true; cfg.z = -(Number(n.progress||0) * 10);
-             rivalLabels[i].textContent = n.teamName || ""; rivalLabels[i].style.display = 'block';
-             const c = (typeof n.color === "number") ? n.color : 0xffffff;
-             rivalLabels[i].style.borderColor = '#' + c.toString(16).padStart(6,'0');
-             if(rivals[i].userData.color !== c) { scene.remove(rivals[i]); const nb = createBoat(c); nb.userData.color = c; nb.position.copy(rivals[i].position); rivals[i] = nb; scene.add(rivals[i]); }
-             const s = rivals[i].getObjectByName("shieldMesh"); if(s && n.effects) s.visible = (Number(n.effects.immuneUntil||0) > Date.now());
-          } else { cfg.vis = false; rivalLabels[i].style.display = 'none'; }
-       }
+      myTargetZ = -(prog * 10);
+
+      for(let i=0; i<4; i++) {
+        const cfg = rivalTargets[i];
+        const n = allTeams[myIdx + cfg.idxOffset];
+
+        if(n) {
+          cfg.vis = true;
+          cfg.z = -(Number(n.progress||0) * 10);
+
+          rivalLabels[i].textContent = n.teamName || "";
+          rivalLabels[i].style.display = 'block';
+
+          const c = (typeof n.color === "number") ? n.color : 0xffffff;
+          rivalLabels[i].style.borderColor = '#' + c.toString(16).padStart(6,'0');
+
+          if(rivals[i].userData.color !== c) {
+            scene.remove(rivals[i]);
+            const nb = createBoat(c);
+            nb.userData.color = c;
+            nb.position.copy(rivals[i].position);
+            rivals[i] = nb;
+            scene.add(rivals[i]);
+          }
+
+          const s = rivals[i].getObjectByName("shieldMesh");
+          if(s && n.effects) s.visible = (Number(n.effects.immuneUntil||0) > Date.now());
+        } else {
+          cfg.vis = false;
+          rivalLabels[i].style.display = 'none';
+        }
+      }
     }
 
     let time = 0;
+
+    function updateLabel(obj, el) {
+      if(!el || el.style.display==='none') return;
+      const v = new THREE.Vector3(0,4,0);
+      v.applyMatrix4(obj.matrixWorld);
+      v.project(camera);
+      el.style.left = `${(v.x*.5+.5)*viewport.clientWidth}px`;
+      el.style.top  = `${(-(v.y*.5)+.5)*viewport.clientHeight}px`;
+      el.style.opacity = v.z>1?0:1;
+    }
+
     function animate() {
-      requestAnimationFrame(animate); time += 0.02;
-      const rPos = rain.geometry.attributes.position.array; for(let i=1; i<rPos.length; i+=3) { rPos[i]-=3; if(rPos[i]<-100) rPos[i]=300; } rain.geometry.attributes.position.needsUpdate = true;
-      const pos = water.geometry.attributes.position; for(let i=0; i<pos.count; i++) pos.setZ(i, Math.sin(pos.getX(i)/3+time)*1.5 + Math.cos(pos.getY(i)/4+time)); pos.needsUpdate = true;
-      myBoat.position.z += (myTargetZ - myBoat.position.z) * 0.05; myBoat.position.y = Math.sin(time) * 0.4; myBoat.rotation.x = Math.sin(time*0.5)*0.1;
-      if(krakenGroup.visible) krakenGroup.children.forEach((t, i) => { t.rotation.x = Math.sin(time*2+i)*0.5; t.position.y = -2+Math.sin(time*3+i)*2; });
+      requestAnimationFrame(animate);
+      time += 0.02;
+
+      // rain
+      const rPos = rain.geometry.attributes.position.array;
+      for(let i=1; i<rPos.length; i+=3) { rPos[i]-=3; if(rPos[i]<-100) rPos[i]=300; }
+      rain.geometry.attributes.position.needsUpdate = true;
+
+      // water waves
+      const pos = water.geometry.attributes.position;
+      for(let i=0; i<pos.count; i++) {
+        pos.setZ(i, Math.sin(pos.getX(i)/3+time)*1.5 + Math.cos(pos.getY(i)/4+time));
+      }
+      pos.needsUpdate = true;
+
+      // my boat
+      myBoat.position.z += (myTargetZ - myBoat.position.z) * 0.05;
+      myBoat.position.y = Math.sin(time) * 0.4;
+      myBoat.rotation.x = Math.sin(time*0.5)*0.1;
+
+      // kraken motion
+      if(krakenGroup.visible) {
+        krakenGroup.children.forEach((t, i) => {
+          t.rotation.x = Math.sin(time*2+i)*0.5;
+          t.position.y = -2+Math.sin(time*3+i)*2;
+        });
+      }
+
+      // rivals
       for(let i=0; i<4; i++) {
-         const cfg = rivalTargets[i]; const boat = rivals[i];
-         if(cfg.vis) { boat.visible = true; boat.position.z += (cfg.z - boat.position.z)*0.05; boat.position.x = cfg.x; boat.position.y = Math.sin(time+i)*0.4; updateLabel(boat, rivalLabels[i]); } 
-         else { boat.visible = false; }
+        const cfg = rivalTargets[i];
+        const boat = rivals[i];
+        if(cfg.vis) {
+          boat.visible = true;
+          boat.position.z += (cfg.z - boat.position.z)*0.05;
+          boat.position.x = cfg.x;
+          boat.position.y = Math.sin(time+i)*0.4;
+          updateLabel(boat, rivalLabels[i]);
+        } else {
+          boat.visible = false;
+        }
       }
+
+      // explosion
       if(explosionActive) {
-         const pos = explosionSystem.geometry.attributes.position.array;
-         for(let i=0; i<200; i++) { pos[i*3] += pVel[i].x; pos[i*3+1] += pVel[i].y; pos[i*3+2] += pVel[i].z; }
-         explosionSystem.geometry.attributes.position.needsUpdate = true;
+        const p = explosionSystem.geometry.attributes.position.array;
+        for(let i=0; i<200; i++) {
+          p[i*3] += pVel[i].x;
+          p[i*3+1] += pVel[i].y;
+          p[i*3+2] += pVel[i].z;
+        }
+        explosionSystem.geometry.attributes.position.needsUpdate = true;
       }
-      labelMe.style.display = state.teamName ? 'block' : 'none'; updateLabel(myBoat, labelMe);
-      camera.position.set(0, 10, myBoat.position.z + 20); camera.lookAt(0, 2, myBoat.position.z - 10);
+
+      labelMe.style.display = state.teamName ? 'block' : 'none';
+      updateLabel(myBoat, labelMe);
+
+      camera.position.set(0, 10, myBoat.position.z + 20);
+      camera.lookAt(0, 2, myBoat.position.z - 10);
       renderer.render(scene, camera);
     }
-    function updateLabel(obj, el) {
-       if(!el || el.style.display==='none') return;
-       const v = new THREE.Vector3(0,4,0); v.applyMatrix4(obj.matrixWorld); v.project(camera);
-       el.style.left = `${(v.x*.5+.5)*viewport.clientWidth}px`; el.style.top = `${(-(v.y*.5)+.5)*viewport.clientHeight}px`; el.style.opacity = v.z>1?0:1;
-    }
-    animate(); window.onresize = () => { camera.aspect = viewport.clientWidth/viewport.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(viewport.clientWidth, viewport.clientHeight); };
+
+    animate();
+
+    window.onresize = () => {
+      camera.aspect = viewport.clientWidth/viewport.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+    };
   </script>
 </body>
 </html>
